@@ -1,0 +1,95 @@
+{
+	"info": {
+		"_postman_id": "685f02ab-e480-44b8-87aa-9ffc81cf0655",
+		"name": "clx",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24975697"
+	},
+	"item": [
+		{
+			"name": "https://app.coliix.com/aga/seller/api-parcels",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "token",
+							"value": "e7d5ac-b37417-9b1ea3-a209cf-407598",
+							"type": "text"
+						},
+						{
+							"key": "action",
+							"value": "add",
+							"type": "text"
+						},
+						{
+							"key": "ville",
+							"value": "Agadir",
+							"type": "text"
+						},
+						{
+							"key": "tracking",
+							"value": "TESt1111",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "0620302052",
+							"type": "text"
+						},
+						{
+							"key": "qty",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "adresse",
+							"value": "test test",
+							"type": "text"
+						},
+						{
+							"key": "note",
+							"value": "Note test",
+							"type": "text"
+						},
+						{
+							"key": "price",
+							"value": "120",
+							"type": "text"
+						},
+						{
+							"key": "stock",
+							"value": "0",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "Test",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://app.coliix.com/aga/seller/api-parcels",
+					"protocol": "https",
+					"host": [
+						"app",
+						"coliix",
+						"com"
+					],
+					"path": [
+						"aga",
+						"seller",
+						"api-parcels"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
