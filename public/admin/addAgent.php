@@ -11,7 +11,7 @@ $alertScript = ''; // This will store the SweetAlert script
 if (isset($_POST['submit'])) {
   // Get form data 
   $full_name = $_POST['full_name'];
-  $cin = $_POST['cin'];
+  $cin = $_POST['cin']; 
   $email = $_POST['email'];
   $phone_number = $_POST['phone_number'];
   $city = $_POST['city'];
