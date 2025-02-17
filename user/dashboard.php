@@ -317,12 +317,12 @@ mysqli_close($conn);
         <div class="alert alert-warning" role="alert" style="line-height: 2;">
           <strong>Avertissement concernant la version bêta : </strong>
 
-          Bienvenue sur la version bêta de notre plateforme ! Veuillez noter qu'il s'agit d'une version préliminaire et
-          que vous risquez de rencontrer des difficultés techniques, des bugs ou des fonctionnalités incomplètes lors de
-          votre utilisation. Nous travaillons activement à améliorer et à perfectionner la plateforme en fonction de vos
-          commentaires. Votre expérience et vos commentaires sont essentiels au processus de développement et nous
-          apprécions votre compréhension et votre patience pendant que nous continuons à apporter des améliorations.
-          Merci de nous aider à façonner le produit final !
+          bienvenue dans la version bêta de notre plateforme ! Veuillez noter qu'il s'agit d'une version préliminaire et
+          que vous pouvez rencontrer des difficultés techniques, des bugs ou des fonctionnalités incomplètes lors de
+          votre utilisation. Nous travaillons activement à l'amélioration et au perfectionnement de la plateforme en
+          fonction de vos commentaires. Votre expérience et vos commentaires sont essentiels au processus de
+          développement et nous apprécions votre compréhension et votre patience pendant que nous continuons à apporter
+          des améliorations. Merci de nous aider à façonner le produit final !
         </div>
         <div class="row">
           <div class="col-sm-6 col-xl-3">

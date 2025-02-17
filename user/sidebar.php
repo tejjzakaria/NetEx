@@ -1,4 +1,5 @@
 <?php
+include "../config.php";
 // Get the current request URI (full URL path including query parameters)
 $current_url = $_SERVER['REQUEST_URI'];
 
@@ -7,6 +8,8 @@ $current_page = basename(parse_url($current_url, PHP_URL_PATH));
 
 // Check if the current page is 'offers.php'
 $is_offers_page = $current_page === 'offers.php';
+
+
 ?>
 
 
@@ -117,6 +120,7 @@ $is_offers_page = $current_page === 'offers.php';
                 <span class="hide-menu">List leads</span>
               </a>
             </li>
+            
             <li class="sidebar-item">
               <a href="addLead.php" class="sidebar-link">
                 <div class="round-16 d-flex align-items-center justify-content-center">

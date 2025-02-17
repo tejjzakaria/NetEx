@@ -1,4 +1,6 @@
 <?php
+include "../config.php";
+
 // Get the current request URI (full URL path including query parameters)
 $current_url = $_SERVER['REQUEST_URI'];
 
@@ -7,6 +9,10 @@ $current_page = basename(parse_url($current_url, PHP_URL_PATH));
 
 // Check if the current page is 'offers.php'
 $is_offers_page = $current_page === 'offers.php';
+
+$sql = "SELECT COUNT(*) AS new FROM leads WHERE agent='pas encore attribué'";
+$result = mysqli_query($conn, $sql);
+$newLeads = mysqli_fetch_assoc($result)['new'];
 ?>
 
 
@@ -44,7 +50,7 @@ $is_offers_page = $current_page === 'offers.php';
           </a>
         </li>
 
-        
+
 
 
 
@@ -64,30 +70,37 @@ $is_offers_page = $current_page === 'offers.php';
             </span>
             <span class="hide-menu">Colis</span>
           </a>
-          
+
         </li>
-        
 
 
-        
 
-        
+
+
+
 
         <li class="nav-small-cap">
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
           <span class="hide-menu">Centre d'appel</span>
         </li>
 
+
+
         <li class="sidebar-item">
-          <a class="sidebar-link" href="viewLeads.php" aria-expanded="false">
-            <span class="d-flex">
-              <i class="ti ti-star"></i>
-            </span>
-            <span class="hide-menu">Leads</span>
+          <a class="sidebar-link justify-content-between" href="viewLeads.php" aria-expanded="false">
+            <div class="d-flex align-items-center gap-3">
+              <span class="d-flex">
+                <i class="ti ti-star"></i>
+              </span>
+              <span class="hide-menu">Leads</span>
+            </div>
+            <div class="hide-menu">
+            <span class="hide-menu badge bg-secondary fs-2 py-1 px-2"><?php echo $newLeads ?></span>
+            </div>
           </a>
-          
+
         </li>
-        
+
 
         <li class="nav-small-cap">
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
@@ -101,7 +114,7 @@ $is_offers_page = $current_page === 'offers.php';
             <span class="hide-menu">CRBT</span>
           </a>
         </li>
-        
+
 
 
         <li class="nav-small-cap">
@@ -121,7 +134,7 @@ $is_offers_page = $current_page === 'offers.php';
         </li>
 
         <div class="alert alert-warning" style="margin-top: 10px;" role="alert">
-        <strong>Version bêta : </strong>Vous pouvez rencontrer des problèmes techniques.
+          <strong>Version bêta : </strong>Vous pouvez rencontrer des problèmes techniques.
         </div>
     </nav>
     <div class="fixed-profile p-3 bg-light-secondary rounded sidebar-ad mt-3">
@@ -137,7 +150,7 @@ $is_offers_page = $current_page === 'offers.php';
           data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="logout">
           <i class="ti ti-power fs-6"></i>
         </button>
-      </div> 
+      </div>
     </div>
     <!-- End Sidebar navigation -->
   </div>

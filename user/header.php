@@ -160,7 +160,7 @@ while ($notif = $result->fetch_assoc()) {
         event.stopPropagation();
 
         fetch("markAllNotificationsRead.php", {
-            method: "POST",
+            method: "POST", 
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: ""
         })
