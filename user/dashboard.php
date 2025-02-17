@@ -23,35 +23,35 @@ $statuses = ["Livré", "Retourné", "Annulé", "Expédié", "nouveau", "injoigna
 $userID = $_SESSION['userID']; // Get the logged-in user's ID
 
 foreach ($statuses as $status) {
-    $dataPoints = [];
-    $currentTime = strtotime($startDate); // Reset time for each status
-    
-    while ($currentTime <= $endTime) {
-        $time = date("Y-m-01 00:00:00", $currentTime); // First day of the month
-        $monthLabel = date("F", $currentTime); // Month name for the category
+  $dataPoints = [];
+  $currentTime = strtotime($startDate); // Reset time for each status
 
-        // Query to count status for the logged-in user
-        $stmt = $conn->prepare("SELECT COUNT(*) AS count FROM leads WHERE userID = ? AND status = ? AND created_at >= ? AND created_at < DATE_ADD(?, INTERVAL 1 MONTH)");
-        $stmt->bind_param("isss", $userID, $status, $time, $time);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-        $count = $row['count'];
-        $stmt->close();
+  while ($currentTime <= $endTime) {
+    $time = date("Y-m-01 00:00:00", $currentTime); // First day of the month
+    $monthLabel = date("F", $currentTime); // Month name for the category
 
-        $dataPoints[] = (int) $count;
+    // Query to count status for the logged-in user
+    $stmt = $conn->prepare("SELECT COUNT(*) AS count FROM leads WHERE userID = ? AND status = ? AND created_at >= ? AND created_at < DATE_ADD(?, INTERVAL 1 MONTH)");
+    $stmt->bind_param("isss", $userID, $status, $time, $time);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $count = $row['count'];
+    $stmt->close();
 
-        if (!in_array($monthLabel, $timeCategories)) { // Add category only once
-            $timeCategories[] = $monthLabel;
-        }
+    $dataPoints[] = (int) $count;
 
-        $currentTime = strtotime("+1 month", $currentTime); // Increment by one month
+    if (!in_array($monthLabel, $timeCategories)) { // Add category only once
+      $timeCategories[] = $monthLabel;
     }
-    
-    $chartData[] = [
-        "name" => $status,
-        "data" => $dataPoints,
-    ];
+
+    $currentTime = strtotime("+1 month", $currentTime); // Increment by one month
+  }
+
+  $chartData[] = [
+    "name" => $status,
+    "data" => $dataPoints,
+  ];
 }
 
 $chartDataJson = json_encode($chartData);
@@ -76,23 +76,23 @@ if ($stmt = $conn->prepare($sql_count)) {
   $stmt->close();
 }
 
-$sql = "SELECT COUNT(*) AS delivered FROM parcels2 WHERE userID='$userID' AND status='Livré'";
+$sql = "SELECT COUNT(*) AS delivered FROM parcels2 WHERE userID='$userID' AND status='LIVRÉ'";
 $result = mysqli_query($conn, $sql);
 $deliveredParcels = mysqli_fetch_assoc($result)['delivered'];
 
-$sql = "SELECT COUNT(*) AS returned FROM parcels2 WHERE userID='$userID' AND status='Retourné'";
+$sql = "SELECT COUNT(*) AS returned FROM parcels2 WHERE userID='$userID' AND status='RETOURNÉ'";
 $result = mysqli_query($conn, $sql);
 $returnedParcels = mysqli_fetch_assoc($result)['returned'];
 
-$sql = "SELECT COUNT(*) AS cancelled FROM parcels2 WHERE userID='$userID' AND status='Annulé'";
+$sql = "SELECT COUNT(*) AS cancelled FROM parcels2 WHERE userID='$userID' AND status='ANNULÉ'";
 $result = mysqli_query($conn, $sql);
 $cancelledParcels = mysqli_fetch_assoc($result)['cancelled'];
 
-$sql = "SELECT COUNT(*) AS pending FROM parcels2 WHERE userID='$userID' AND status='nouveau'";
+$sql = "SELECT COUNT(*) AS pending FROM parcels2 WHERE userID='$userID' AND status='NOUVEAU COLIS'";
 $result = mysqli_query($conn, $sql);
 $pendingParcels = mysqli_fetch_assoc($result)['pending'];
 
-$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE userID='$userID' AND status='Confirmer'";
+$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE userID='$userID' AND status='CONFIRMER'";
 $result = mysqli_query($conn, $sql);
 $confirmedParcels = mysqli_fetch_assoc($result)['confirmed'];
 
@@ -224,19 +224,19 @@ $table_data2 = '';
 
 while ($row = mysqli_fetch_assoc($result)) {
 
-    if ($row['status'] == 'succès') {
-        $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'en attente') {
-        $status_class = "badge bg-primary fw-semibold fs-2";
-    } else if ($row['status'] == 'échoué') {
-        $status_class = "badge bg-danger fw-semibold fs-2";
-    } else {
-        $status_class = "badge bg-primary fw-semibold fs-2";
-    }
+  if ($row['status'] == 'succès') {
+    $status_class = "badge bg-success fw-semibold fs-2";
+  } else if ($row['status'] == 'en attente') {
+    $status_class = "badge bg-primary fw-semibold fs-2";
+  } else if ($row['status'] == 'échoué') {
+    $status_class = "badge bg-danger fw-semibold fs-2";
+  } else {
+    $status_class = "badge bg-primary fw-semibold fs-2";
+  }
 
 
 
-    $table_data2 = '
+  $table_data2 = '
             <tr>
                 
                 <td>
@@ -315,16 +315,14 @@ mysqli_close($conn);
       <!-- Header End -->
       <div class="container-fluid">
         <div class="alert alert-warning" role="alert" style="line-height: 2;">
-          <strong>Beta Version Warning: </strong>
+          <strong>Avertissement concernant la version bêta : </strong>
 
-          Welcome to the beta version of our platform! Please be aware that this is a pre-release version, and you may
-          experience technical difficulties, bugs, or incomplete features during your use. We are actively working to
-          improve and enhance the platform based on your feedback.
-
-          Your experience and input are vital to the development process, and we appreciate your understanding and
-          patience as we continue to make improvements.
-
-          Thank you for helping us shape the final product!
+          Bienvenue sur la version bêta de notre plateforme ! Veuillez noter qu'il s'agit d'une version préliminaire et
+          que vous risquez de rencontrer des difficultés techniques, des bugs ou des fonctionnalités incomplètes lors de
+          votre utilisation. Nous travaillons activement à améliorer et à perfectionner la plateforme en fonction de vos
+          commentaires. Votre expérience et vos commentaires sont essentiels au processus de développement et nous
+          apprécions votre compréhension et votre patience pendant que nous continuons à apporter des améliorations.
+          Merci de nous aider à façonner le produit final !
         </div>
         <div class="row">
           <div class="col-sm-6 col-xl-3">
@@ -333,7 +331,7 @@ mysqli_close($conn);
                 <div class="d-flex align-items-center">
                   <div class="round rounded bg-primary d-flex align-items-center justify-content-center">
 
-                    <i class="ti ti-clock-filled text-white fs-7"></i> 
+                    <i class="ti ti-clock-filled text-white fs-7"></i>
                   </div>
                   <h6 class="mb-0 ms-3">En attente</h6>
                   <div class="ms-auto text-primary d-flex align-items-center">
@@ -407,7 +405,7 @@ mysqli_close($conn);
           </div>
         </div>
         <div class="row">
-        <div class="col-9">
+          <div class="col-9">
             <div class="card">
               <div class="card-body">
                 <h5>Aperçu des statistiques des 5 derniers mois</h5>
@@ -437,7 +435,7 @@ mysqli_close($conn);
               </div>
             </div>
             <div class="card">
-            <div class="card-body">
+              <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
                   <div>
                     <h3 class="fs-6"><?php echo $confirmationRate ?>%</h3>
@@ -464,14 +462,14 @@ mysqli_close($conn);
                   <div class="ms-auto">
                     <span class="text-info display-6"><i class="ti ti-clipboard"></i></span>
                   </div>
-                </div> 
+                </div>
 
               </div>
             </div>
           </div>
         </div>
-        
-        
+
+
 
 
 
@@ -849,7 +847,7 @@ mysqli_close($conn);
 
 
 
-  
+
 
   <script>
     var options_stacked = {

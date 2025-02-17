@@ -34,27 +34,27 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 
 
-    if ($row['state'] == 'Payé') {
+    if ($row['state'] == 'PAYÉ') {
         $state_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['state'] == 'Non payé') {
+    } else if ($row['state'] == 'NON PAYÉ') {
         $state_class = "badge bg-danger fw-semibold fs-2";
     } else {
         $state_class = "badge bg-primary fw-semibold fs-2";
     }
 
-    if ($row['status'] == 'Livré' or $row['status'] == 'livre') {
+    if ($row['status'] == 'LIVRÉ' or $row['status'] == 'livre') {
         $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'refusé' or $row['status'] == 'Refusé') {
+    } else if ($row['status'] == 'REFUSÉ' or $row['status'] == 'Refusé') {
         $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'annulé' or $row['status'] == 'Annulé') {
+    } else if ($row['status'] == 'ANNULÉ' or $row['status'] == 'Annulé') {
         $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'returné' or $row['status'] == 'Retourné') {
+    } else if ($row['status'] == 'RETOURNÉ' or $row['status'] == 'Retourné') {
         $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'pas de réponse' or $row['status'] == 'Pas de réponse') {
+    } else if ($row['status'] == 'PAS DE RÉPONSE' or $row['status'] == 'Pas de réponse') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'occupé' or $row['status'] == 'Occupé') {
+    } else if ($row['status'] == 'OCCUPÉ' or $row['status'] == 'Occupé') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'message whatsapp' or $row['status'] == 'Msj wtsp') {
+    } else if ($row['status'] == 'MESSAGE WHATSAPP' or $row['status'] == 'MSJ WTSP') {
         $status_class = "badge bg-warning fw-semibold fs-2";
     } else {
         $status_class = "badge bg-primary fw-semibold fs-2";
@@ -126,10 +126,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                                 <a class="dropdown-item d-flex align-items-center gap-3" href="editParcel.php?id=' . $row['id'] . '"><i
                                         class="fs-4 ti ti-edit"></i>Modifier</a>
                             </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-3" href="deleteParcel.php?id=' . $row['id'] . '"><i
-                                        class="fs-4 ti ti-trash"></i>Supprimer</a>
-                            </li>
+                            
                         </ul>
                     </div>
                 </td>
@@ -519,6 +516,8 @@ mysqli_close($conn);
                 }
             ],
             // ... other DataTables options ...
+            "scrollX": true,
+            "scrollY": true,
             "language": {
                 "lengthMenu": "Afficher _MENU_ entrées",
                 "zeroRecords": "Aucun enregistrement trouvé",
@@ -533,6 +532,7 @@ mysqli_close($conn);
                     "previous": "Précédent"
                 }
             }
+            
         });
 
         $(".buttons-csv, .buttons-pdf").addClass("btn btn-outline-success mx-1");

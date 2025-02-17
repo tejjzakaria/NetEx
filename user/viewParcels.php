@@ -29,27 +29,27 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 
 
-    if ($row['state'] == 'payé') {
+    if ($row['state'] == 'PAYÉ') {
         $state_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['state'] == 'Non payé') {
+    } else if ($row['state'] == 'NON PAYÉ') {
         $state_class = "badge bg-danger fw-semibold fs-2";
     } else {
         $state_class = "badge bg-primary fw-semibold fs-2";
     }
 
-    if ($row['status'] == 'Livré' or $row['status'] == 'livre') {
+    if ($row['status'] == 'LIVRÉ' or $row['status'] == 'livre') {
         $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'refusé' or $row['status'] == 'Refusé') {
+    } else if ($row['status'] == 'REFUSÉ' or $row['status'] == 'Refusé') {
         $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'annulé' or $row['status'] == 'Annulé') {
+    } else if ($row['status'] == 'ANNULÉ' or $row['status'] == 'Annulé') {
         $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'returné' or $row['status'] == 'Retourné') {
+    } else if ($row['status'] == 'RETOURNÉ' or $row['status'] == 'Retourné') {
         $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'pas de réponse' or $row['status'] == 'Pas de réponse') {
+    } else if ($row['status'] == 'PAS DE RÉPONSE' or $row['status'] == 'Pas de réponse') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'occupé' or $row['status'] == 'Occupé') {
+    } else if ($row['status'] == 'OCCUPÉ' or $row['status'] == 'Occupé') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'message whatsapp' or $row['status'] == 'Msj wtsp') {
+    } else if ($row['status'] == 'MESSAGE WHATSAPP' or $row['status'] == 'MSJ WTSP') {
         $status_class = "badge bg-warning fw-semibold fs-2";
     } else {
         $status_class = "badge bg-primary fw-semibold fs-2";
@@ -235,10 +235,10 @@ mysqli_close($conn);
                 </div>
 
 
-                
 
 
-                
+
+
 
 
 
@@ -461,20 +461,22 @@ mysqli_close($conn);
     <script>
         $(document).ready(function () {
             $('#parcels_table').DataTable({
+                "scrollX": true,
+                "scrollY": true,
                 "language": {
-            "lengthMenu": "Afficher _MENU_ entrées",
-            "zeroRecords": "Aucun enregistrement trouvé",
-            "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-            "infoEmpty": "Aucune entrée disponible",
-            "infoFiltered": "(filtré de _MAX_ entrées au total)",
-            "search": "Rechercher:",
-            "paginate": {
-                "first": "Premier",
-                "last": "Dernier",
-                "next": "Suivant",
-                "previous": "Précédent"
-            }
-        }
+                    "lengthMenu": "Afficher _MENU_ entrées",
+                    "zeroRecords": "Aucun enregistrement trouvé",
+                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                    "infoEmpty": "Aucune entrée disponible",
+                    "infoFiltered": "(filtré de _MAX_ entrées au total)",
+                    "search": "Rechercher:",
+                    "paginate": {
+                        "first": "Premier",
+                        "last": "Dernier",
+                        "next": "Suivant",
+                        "previous": "Précédent"
+                    }
+                }
             });
         });
     </script>

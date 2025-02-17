@@ -7,49 +7,49 @@ include "checkSession.php";
 include "fetchUserData.php";
 
 
-$sql = "SELECT SUM(price) AS total_balance FROM parcels2 WHERE status = 'Livré'";
+$sql = "SELECT SUM(price) AS total_balance FROM parcels2 WHERE status = 'LIVRÉ'";
 $result = mysqli_query($conn, $sql);
 $total_balance = mysqli_fetch_assoc($result)['total_balance'];
 
-$sql = "SELECT SUM(comission) AS total_comission FROM parcels2 WHERE status = 'Livré'";
+$sql = "SELECT SUM(comission) AS total_comission FROM parcels2 WHERE status = 'LIVRÉ'";
 $result = mysqli_query($conn, $sql);
 $total_comission = mysqli_fetch_assoc($result)['total_comission'];
 
 
 
-$sql = "SELECT COUNT(*) AS delivered FROM parcels2 WHERE status='Livré'";
+$sql = "SELECT COUNT(*) AS delivered FROM parcels2 WHERE status='LIVRÉ'";
 $result = mysqli_query($conn, $sql);
 $deliveredParcels = mysqli_fetch_assoc($result)['delivered'];
 
-$sql = "SELECT COUNT(*) AS returned FROM parcels2 WHERE status='Retourné'";
+$sql = "SELECT COUNT(*) AS returned FROM parcels2 WHERE status='RETOURNÉ'";
 $result = mysqli_query($conn, $sql);
 $returnedParcels = mysqli_fetch_assoc($result)['returned'];
 
-$sql = "SELECT COUNT(*) AS cancelled FROM parcels2 WHERE status='Annulé'";
+$sql = "SELECT COUNT(*) AS cancelled FROM parcels2 WHERE status='ANNULÉ'";
 $result = mysqli_query($conn, $sql);
 $cancelledParcels = mysqli_fetch_assoc($result)['cancelled'];
 
-$sql = "SELECT COUNT(*) AS pending FROM parcels2 WHERE status='Expédié' OR status='nouveau'";
+$sql = "SELECT COUNT(*) AS pending FROM parcels2 WHERE status='EXPÉDIÉ' OR status='NOUVEAU COLIS'";
 $result = mysqli_query($conn, $sql);
 $pendingParcels = mysqli_fetch_assoc($result)['pending'];
 
-$sql = "SELECT COUNT(*) AS unreachable FROM parcels2 WHERE status='injoignable'";
+$sql = "SELECT COUNT(*) AS unreachable FROM parcels2 WHERE status='INJOIGNABLE'";
 $result = mysqli_query($conn, $sql);
 $unreachableParcels = mysqli_fetch_assoc($result)['unreachable'];
 
-$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE status='Confirmer'";
+$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE status='CONFIRMER'";
 $result = mysqli_query($conn, $sql);
 $confirmedParcels = mysqli_fetch_assoc($result)['confirmed'];
 
-$sql = "SELECT COUNT(*) AS new FROM leads WHERE status='nouveau' OR status='Nouveau colis'";
+$sql = "SELECT COUNT(*) AS new FROM leads WHERE status='NOUVEAU' OR status='NOUVEAU COLIS'";
 $result = mysqli_query($conn, $sql);
 $newParcels = mysqli_fetch_assoc($result)['new'];
 
-$sql = "SELECT COUNT(*) AS collected FROM leads WHERE status='rammasser' OR status='rammassé'";
+$sql = "SELECT COUNT(*) AS collected FROM leads WHERE status='RAMMASSER' OR status='rammassé'";
 $result = mysqli_query($conn, $sql);
 $collectedParcels = mysqli_fetch_assoc($result)['collected'];
 
-$sql = "SELECT COUNT(*) AS problems FROM leads WHERE status='Rappel' OR status='Appel X4' OR status='Boite Vocale' OR status='Pas de réponse' OR status='Occupé' OR status='Msj Wtsp'";
+$sql = "SELECT COUNT(*) AS problems FROM leads WHERE status='RAPPEL' OR status='APPEL X4' OR status='BOITE VOCALE' OR status='PAS DE RÉPONSE' OR status='OCCUPÉ' OR status='MSJ WTSP'";
 $result = mysqli_query($conn, $sql);
 $problemsParcels = mysqli_fetch_assoc($result)['problems'];
 

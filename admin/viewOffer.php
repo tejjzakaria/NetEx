@@ -14,7 +14,7 @@ $offerData = mysqli_fetch_assoc($result);
 
 $message = '';
 
-// Check if the form is submitted
+// Check if the form is submitted 
 if (isset($_POST['submit'])) {
 
     // Get the product name and quantity from the form

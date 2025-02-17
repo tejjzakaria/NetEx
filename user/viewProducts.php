@@ -14,9 +14,9 @@ $table_data = '';
 
 while ($row = mysqli_fetch_assoc($result)) {
 
-    if ($row['status'] == 'En attente') {
+    if ($row['status'] == 'EN ATTENTE') {
         $status_class = "badge bg-light-primary text-primary fw-semibold fs-2 gap-1 d-inline-flex align-items-center";
-    } else if ($row['status'] == 'En stock') {
+    } else if ($row['status'] == 'EN STOCK') {
         $status_class = "badge bg-light-success text-success fw-semibold fs-2 gap-1 d-inline-flex align-items-center";
     } else {
         $status_class = "badge bg-light-secondary text-secondary fw-semibold fs-2 gap-1 d-inline-flex align-items-center";
@@ -46,7 +46,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                 </td>
                 <td>
                     <span
-                        class="badge bg-warning fw-semibold fs-2">' . $row['product_comission'] . '</span>
+                        class="badge bg-warning fw-semibold fs-2">' . $row['product_comission'] . ' MAD</span>
                 </td>
                  
                 

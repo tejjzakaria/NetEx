@@ -164,7 +164,7 @@ if (isset($_POST['submit'])) {
                     <div class="col-lg-6">
                         <div id="sync1" class="owl-carousel owl-theme">
                             <div class="item rounded overflow-hidden">
-                                <img src="dist/images/products/s1.jpg" alt="" class="img-fluid">
+                                <img src="<?php echo $offerData['f_image'] ?>" alt="" class="img-fluid">
                             </div>
 
                         </div>

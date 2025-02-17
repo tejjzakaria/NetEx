@@ -9,7 +9,7 @@ include "fetchUserData.php";
 // Query to get the total commission for the agent
 $sql_delivered_parcels = "SELECT COUNT(*) AS delivered_count
                            FROM parcels2
-                           WHERE (status = 'livré' OR status = 'Livré' OR status = 'livre')
+                           WHERE (status = 'livré' OR status = 'LIVRÉ' OR status = 'livre')
                            AND agent = '$agentName'";
 
 $result_delivered_parcels = mysqli_query($conn, $sql_delivered_parcels);
@@ -22,7 +22,7 @@ $agent_total_comission = $delivered_count * 10;
 // Query to get the total withdrawals for the agent
 $sql_agent_withdrawals = "SELECT SUM(amount) AS agent_withdrawals 
                           FROM agent_withdrawal_requests 
-                          WHERE agent = '$agentName' AND status != 'echoué'";
+                          WHERE agent = '$agentName' AND status != 'ÉCHOUÉ'";
 
 $result_agent_withdrawals = mysqli_query($conn, $sql_agent_withdrawals);
 $row_withdrawals = mysqli_fetch_assoc($result_agent_withdrawals);
@@ -44,19 +44,19 @@ $sql = "SELECT COUNT(*) AS unassigned FROM leads WHERE agent='pas encore attribu
 $result = mysqli_query($conn, $sql);
 $unassignedLeads = mysqli_fetch_assoc($result)['unassigned'];
 
-$sql = "SELECT COUNT(*) AS delivered FROM parcels2 WHERE agent='$agentName' AND status='livré'";
+$sql = "SELECT COUNT(*) AS delivered FROM parcels2 WHERE agent='$agentName' AND status='LIVRÉ'";
 $result = mysqli_query($conn, $sql);
 $deliveredParcels = mysqli_fetch_assoc($result)['delivered'];
 
-$sql = "SELECT COUNT(*) AS returned FROM parcels2 WHERE agent='$agentName' AND status='returné'";
+$sql = "SELECT COUNT(*) AS returned FROM parcels2 WHERE agent='$agentName' AND status='RETOURNÉ'";
 $result = mysqli_query($conn, $sql);
 $returnedParcels = mysqli_fetch_assoc($result)['returned'];
 
-$sql = "SELECT COUNT(*) AS pending FROM parcels2 WHERE agent='$agentName' AND status='nouveau'";
+$sql = "SELECT COUNT(*) AS pending FROM parcels2 WHERE agent='$agentName' AND status='NOUVEAU'";
 $result = mysqli_query($conn, $sql);
 $pendingParcels = mysqli_fetch_assoc($result)['pending'];
 
-$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE agent='$agentName' AND status='confirmé'";
+$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE agent='$agentName' AND status='CONFIRMER'";
 $result = mysqli_query($conn, $sql);
 $confirmedParcels = mysqli_fetch_assoc($result)['confirmed'];
 

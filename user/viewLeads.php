@@ -6,7 +6,7 @@ include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-$sql = "SELECT * FROM leads WHERE userID='$userID'";
+$sql = "SELECT * FROM leads WHERE userID='$userID'"; 
 $result = mysqli_query($conn, $sql);
 $status = '';
 
@@ -16,19 +16,19 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 
 
-    if ($row['status'] == 'confirmé') {
+    if ($row['status'] == 'CONFIRMER' or $row['status'] == 'RAMMASSER') {
         $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'rappel') {
+    } else if ($row['status'] == 'RAPPEL') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'boite vocale') {
+    } else if ($row['status'] == 'BOITE VOCALE') {
         $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'pas de réponse') {
+    } else if ($row['status'] == 'PAS DE RÉPONSE') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'occupé') {
+    } else if ($row['status'] == 'OCCUPÉ') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'annulé') {
+    } else if ($row['status'] == 'ANNULÉ') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'message whatsapp') {
+    } else if ($row['status'] == 'MESSAGE WHATSAPP') {
         $status_class = "badge bg-warning fw-semibold fs-2";
     } else {
         $status_class = "badge bg-primary fw-semibold fs-2";
@@ -38,6 +38,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 
     $table_data = '
             <tr>
+            <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="ms-0">
@@ -197,10 +198,18 @@ mysqli_close($conn);
                             <div class="card">
                                 <div class="card-body">
                                     <div class="table-responsive">
+                                    <button id="process-selected" class="btn btn-danger mb-4"
+                                        style="display: none; transition: all 0.5s ease-in-out;"><i
+                                            class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
+                                        sélectionnées</button>
                                         <table class="table border text-nowrap customize-table mb-0 align-middle"
                                             id="leads_table">
                                             <thead class="text-dark fs-4">
                                                 <tr>
+                                                <th> 
+                                                        <input type="checkbox" id="select-all"
+                                                            class="form-check-input contact-chkbox primary">
+                                                    </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">ID</h6>
                                                     </th>
@@ -520,6 +529,93 @@ mysqli_close($conn);
                 }
             });
         }
+    </script>
+
+
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let deleteButton = document.getElementById("process-selected");
+            deleteButton.style.display = "none"; // Hide button initially
+
+            function updateDeleteButtonVisibility() {
+                let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
+                deleteButton.style.display = anyChecked ? "block" : "none";
+            }
+
+            document.querySelectorAll(".row-select").forEach((checkbox) => {
+                checkbox.addEventListener("change", updateDeleteButtonVisibility);
+            });
+
+            document.getElementById("select-all").addEventListener("change", function () {
+                let isChecked = this.checked;
+                document.querySelectorAll(".row-select").forEach((checkbox) => {
+                    checkbox.checked = isChecked;
+                });
+                updateDeleteButtonVisibility();
+            });
+
+            deleteButton.addEventListener("click", function () {
+                let selectedIds = [];
+
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: "Vous ne pourrez pas revenir en arrière !",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Oui, supprimez-les !"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("deleteLeads.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    selectedIds.forEach(id => {
+                                        document.querySelector(`.row-select[value="${id}"]`).closest("tr").remove();
+                                    });
+
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Supprimé!",
+                                        text: "Les leads sélectionnés ont été supprimés.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload(); // Reload page after deletion
+                                    });
+
+                                    updateDeleteButtonVisibility(); // Hide button if no rows left
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: "Impossible de supprimer certains ou tous les leads."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "Something went wrong!"
+                                });
+                                console.error("Error:", error);
+                            });
+                    }
+                });
+            });
+        });
+
     </script>
 
 </body>

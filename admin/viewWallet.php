@@ -16,11 +16,11 @@ $result = mysqli_query($conn, $sql);
 
 while ($row = mysqli_fetch_assoc($result)) {
 
-    if ($row['status'] == 'Succès') {
+    if ($row['status'] == 'SUCCÈS') {
         $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'En attente') {
+    } else if ($row['status'] == 'EN ATTENTE') {
         $status_class = "badge bg-primary fw-semibold fs-2";
-    } else if ($row['status'] == 'échoué') {
+    } else if ($row['status'] == 'ÉCHOUÉ') {
         $status_class = "badge bg-danger fw-semibold fs-2";
     } else {
         $status_class = "badge bg-primary fw-semibold fs-2";
@@ -28,6 +28,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 
     $table_data = '
             <tr>
+            <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
                 <td>
                     <p class="mb-0 fw-normal">' . $row['tracking_id'] . '</p>
                 </td>
@@ -151,10 +152,18 @@ mysqli_close($conn);
                                     <h5 class="card-title fw-semibold">Histoire des transactions (Clients)</h5>
                                     <p class="card-subtitle mb-0">Aperçu de vos transactions</p>
                                     <div class="table-responsive mt-4">
+                                    <button id="process-selected" class="btn btn-danger mb-4"
+                                        style="display: none; transition: all 0.5s ease-in-out;"><i
+                                            class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
+                                        sélectionnées</button>
                                         <table class="table table-borderless text-nowrap align-middle mb-0"
                                             id="transactions_table">
                                             <thead class="text-dark fs-4">
                                                 <tr>
+                                                <th>
+                                                        <input type="checkbox" id="select-all"
+                                                            class="form-check-input contact-chkbox primary">
+                                                    </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">Réf</h6>
                                                     </th>
@@ -464,8 +473,94 @@ mysqli_close($conn);
                     document.body.appendChild(form);
                     form.submit(); // Submit the form
                 }
-            });
+            }); 
         }
+    </script>
+
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let deleteButton = document.getElementById("process-selected");
+            deleteButton.style.display = "none"; // Hide button initially
+
+            function updateDeleteButtonVisibility() {
+                let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
+                deleteButton.style.display = anyChecked ? "block" : "none";
+            }
+
+            document.querySelectorAll(".row-select").forEach((checkbox) => {
+                checkbox.addEventListener("change", updateDeleteButtonVisibility);
+            });
+
+            document.getElementById("select-all").addEventListener("change", function () {
+                let isChecked = this.checked;
+                document.querySelectorAll(".row-select").forEach((checkbox) => {
+                    checkbox.checked = isChecked;
+                });
+                updateDeleteButtonVisibility();
+            });
+
+            deleteButton.addEventListener("click", function () {
+                let selectedIds = [];
+
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: "Vous ne pourrez pas revenir en arrière !",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Oui, supprimez-les !"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("deleteTransactions.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    selectedIds.forEach(id => {
+                                        document.querySelector(`.row-select[value="${id}"]`).closest("tr").remove();
+                                    });
+
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Supprimé!",
+                                        text: "Les transactions sélectionnés ont été supprimés.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload(); // Reload page after deletion
+                                    });
+
+                                    updateDeleteButtonVisibility(); // Hide button if no rows left
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: "Impossible de supprimer certains ou tous les transactions."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "Something went wrong!"
+                                });
+                                console.error("Error:", error);
+                            });
+                    }
+                });
+            });
+        });
+
     </script>
 
 </body>

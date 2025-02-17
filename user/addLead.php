@@ -79,7 +79,7 @@ if (isset($_POST['submit'])) {
 }
 
 
-$sql_ = "SELECT product_name FROM stock_requests WHERE userID='$userID' and status='En stock'"; 
+$sql_ = "SELECT product_name FROM stock_requests WHERE userID='$userID' and status='EN STOCK'"; 
 $productData = mysqli_query($conn, $sql_);
 
 mysqli_close($conn);

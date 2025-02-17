@@ -29,6 +29,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 
     $table_data .= '
             <tr>
+            <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
                                 <td>
                                     <p class="mb-0 fw-normal">' . $row['id'] . '</p>
                                 </td>
@@ -159,12 +160,20 @@ mysqli_close($conn);
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
+                                <button id="process-selected" class="btn btn-danger mb-4"
+                                        style="display: none; transition: all 0.5s ease-in-out;"><i
+                                            class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
+                                        sélectionnées</button>
                                     <div class="table-responsive">
 
                                         <table class="table border text-nowrap customize-table mb-0 align-middle"
                                             id="users_table">
                                             <thead class="text-dark fs-4">
                                                 <tr>
+                                                <th>
+                                                        <input type="checkbox" id="select-all"
+                                                            class="form-check-input contact-chkbox primary">
+                                                    </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">ID</h6>
                                                     </th>
@@ -725,6 +734,92 @@ mysqli_close($conn);
                     Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
                 });
         }
+    </script>
+
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let deleteButton = document.getElementById("process-selected");
+            deleteButton.style.display = "none"; // Hide button initially
+
+            function updateDeleteButtonVisibility() {
+                let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
+                deleteButton.style.display = anyChecked ? "block" : "none";
+            }
+
+            document.querySelectorAll(".row-select").forEach((checkbox) => {
+                checkbox.addEventListener("change", updateDeleteButtonVisibility);
+            });
+
+            document.getElementById("select-all").addEventListener("change", function () {
+                let isChecked = this.checked;
+                document.querySelectorAll(".row-select").forEach((checkbox) => {
+                    checkbox.checked = isChecked;
+                });
+                updateDeleteButtonVisibility();
+            });
+
+            deleteButton.addEventListener("click", function () {
+                let selectedIds = [];
+
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: "Vous ne pourrez pas revenir en arrière !",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Oui, supprimez-les !"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("deleteUsers.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    selectedIds.forEach(id => {
+                                        document.querySelector(`.row-select[value="${id}"]`).closest("tr").remove();
+                                    });
+
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Supprimé!",
+                                        text: "Les vendeurs sélectionnés ont été supprimés.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload(); // Reload page after deletion
+                                    });
+
+                                    updateDeleteButtonVisibility(); // Hide button if no rows left
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: "Impossible de supprimer certains ou tous les vendeurs."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "Something went wrong!"
+                                });
+                                console.error("Error:", error);
+                            });
+                    }
+                });
+            });
+        });
+
     </script>
 
 
