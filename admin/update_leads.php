@@ -1,44 +1,93 @@
 <?php
-include "../config.php"; // Database connection
 
-$data = json_decode(file_get_contents("php://input"), true);
+require __DIR__ . '/vendor/autoload.php'; // Composer autoload
 
-if ($data && isset($data['id'])) {
-    $id = $data['id'];
-    $name = strtoupper($data['name']);
-    $phone_number = strtoupper($data['phone_number']);
-    $address = strtoupper($data['address']);
-    $city = strtoupper($data['city']);
-    $product = strtoupper($data['product']);
-    $price = strtoupper($data['price']);
-    $agent = strtoupper($data['agent']);
-    $status = strtoupper($data['status']);
-    $comission = strtoupper($data['comission']);
-    $comments = strtoupper($data['comments']);
+use Google\Client;
+use Google\Service\Sheets;
 
-    // Check if the row already exists
-    $check_sql = "SELECT * FROM leads WHERE id='$id'";
-    $check_result = mysqli_query($conn, $check_sql);
+// Your credentials file path
+$credentialsPath = './netex-credentials.json';
 
-    if (mysqli_num_rows($check_result) > 0) {
-        // Update existing row
-        $sql = "UPDATE leads 
-                SET name='$name', phone_number='$phone_number', address='$address', city='$city', 
-                    product='$product', price='$price', agent='$agent', status='$status', 
-                    comission='$comission', comments='$comments' 
-                WHERE id='$id'";
-    } else {
-        // Insert new row
-        $sql = "INSERT INTO leads (id, name, phone_number, address, city, product, price, agent, status, comission, comments) 
-                VALUES ('$id', '$name', '$phone_number', '$address', '$city', '$product', '$price', '$agent', '$status', '$comission', '$comments')";
-    }
+// Create the client
+$client = new Client();
+$client->setApplicationName('NetEx'); // Give it a name
+$client->setAuthConfig($credentialsPath);
+$client->setScopes([Sheets::SPREADSHEETS]); // Specify the scope
 
-    if (mysqli_query($conn, $sql)) {
-        echo json_encode(["success" => true]);
-    } else {
-        echo json_encode(["error" => mysqli_error($conn)]);
+// Create the Sheets service
+$service = new Sheets($client);
+
+// The ID of your spreadsheet
+$spreadsheetId = '18zWPZt1IzhVf0mLyb6ohTALzTbOj7DJCpAt07BfT4ds';
+
+// The range of cells to read (e.g., 'Sheet1!A1:K')
+$range = 'Sheet1!A2:K1000'; // Or specify a more precise range
+
+// Get the values from the spreadsheet
+$response = $service->spreadsheets_values->get($spreadsheetId, $range);
+$values = $response->getValues();
+
+// MySQL Connection
+include "../config.php";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+if (count($values) > 0) {
+    for ($i = 1; $i < count($values); $i++) {
+        $row = $values[$i];
+
+        // Prepare the data for MySQL (handle potential missing values)
+        $id = $row[0] ?? null;
+        $name = $row[1] ?? null;  // Changed variable name for clarity
+        $phone_number = $row[2] ?? null; // Changed variable name
+        $address = $row[3] ?? null; // Changed variable name
+        $city = $row[4] ?? null;
+        $product = $row[5] ?? null;
+        $price = $row[6] ?? null;
+        $agent = $row[7] ?? null;
+        $status = $row[8] ?? null;
+        $comission = $row[9] ?? null; // Corrected spelling
+        $comments = $row[10] ?? null;
+        $tracking_id = $row[11] ?? null; // Added tracking_id
+
+        // Check if the ID exists in the database
+        $checkSql = "SELECT id FROM leads WHERE id = ?"; // Corrected column name
+        $checkStmt = $conn->prepare($checkSql);
+        $checkStmt->bind_param("s", $id);
+        $checkStmt->execute();
+        $checkResult = $checkStmt->get_result();
+        $checkStmt->close(); // Close the check statement
+
+
+        if ($checkResult->num_rows > 0) {
+            // Update (excluding userID and created_at)
+            $sql = "UPDATE leads SET name=?, tracking_id=?, phone_number=?, price=?, city=?, product=?, address=?, comments=?, agent=?, status=?, comission=? WHERE id=?"; // Corrected column names
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssssssssssss", $name, $tracking_id, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $comission, $id); // Corrected bind_param order and types
+        } else {
+            // Insert (excluding userID and created_at)
+            $sql = "INSERT INTO leads (id, name, tracking_id, phone_number, price, city, product, address, comments, agent, status, comission) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // Corrected column names
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssssssssssss", $id, $name, $tracking_id, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $comission); // Corrected bind_param order and types
+        }
+
+        if ($stmt->execute()) {
+            // echo "Record updated/inserted successfully";
+        } else {
+            echo "Error: " . $stmt->error;
+        }
+
+        $stmt->close();
     }
 } else {
-    echo json_encode(["error" => "Invalid data"]);
+    echo "0 results";
 }
+
+$conn->close();
+
+
 ?>
