@@ -2,8 +2,6 @@
 
 require __DIR__ . '/vendor/autoload.php'; // Composer autoload
 
-use Google\Client;
-use Google\Service\Sheets;
 
 // Your credentials file path
 $credentialsPath = './netex-credentials.json';
