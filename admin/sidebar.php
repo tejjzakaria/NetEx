@@ -314,6 +314,34 @@
           </ul>
         </li>
 
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow" href="#" aria-expanded="false">
+            <span class="d-flex">
+              <i class="ti ti-layers-intersect"></i>
+            </span>
+            <span class="hide-menu">Annonces</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="viewAnnouncements.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">List Annonces</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="addAnnouncements.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">Ajouter Annonce</span>
+              </a>
+            </li>
+
+          </ul>
+        </li>
+
 
 
 

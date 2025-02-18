@@ -46,7 +46,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                                     <p class="mb-0 fw-normal">' . $row['city'] . '</p>
                                 </td>
                                 <td>
-                                    <p class="mb-0 fw-normal">' . $row['address'] . '</p>
+                                    <p class="mb-0 fw-normal" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['address'] . '</p>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">

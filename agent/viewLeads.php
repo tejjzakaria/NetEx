@@ -79,8 +79,8 @@ while ($row = mysqli_fetch_assoc($result)) {
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['address'] . ',</h6>
-                            <span class="fw-normal">' . $row['city'] . '</span>
+                            <h6 class="fs-4 fw-normal mb-0" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['address'] . ',</h6>
+                            <span class="fw-normal" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['city'] . '</span>
                         </div>
                     </div>
                 </td>
@@ -107,7 +107,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                 </td>
                 
                 <td>
-                    <p class="mb-0 fw-normal">' . $row['comments'] . '</p>
+                    <p class="mb-0 fw-normal" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['comments'] . '</p>
                 </td>
                 <td>
                     <div class="dropdown dropstart">

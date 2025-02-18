@@ -49,7 +49,7 @@ while ($row = mysqli_fetch_assoc($result)) {
             <td>
                 <div class="d-flex align-items-center">
                     <div class="ms-0">
-                        <h6 class="fs-4 fw-normal mb-0">' . $row['name'] . '</h6>
+                        <h6 class="fs-4 fw-normal mb-0" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['name'] . '</h6>
                         <span class="fw-normal">' . $row['phone_number'] . '</span>
                     </div>
                 </div>
@@ -57,8 +57,8 @@ while ($row = mysqli_fetch_assoc($result)) {
             <td>
                 <div class="d-flex align-items-center">
                     <div class="ms-0">
-                        <h6 class="fs-4 fw-normal mb-0">' . $row['address'] . ',</h6>
-                        <span class="fw-normal">' . $row['city'] . '</span>
+                        <h6 class="fs-4 fw-normal mb-0" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['address'] . ',</h6>
+                        <span class="fw-normal" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['city'] . '</span>
                     </div>
                 </div>
             </td>
@@ -71,7 +71,7 @@ while ($row = mysqli_fetch_assoc($result)) {
             <td>
                 <div class="d-flex align-items-center">
                     <div class="ms-0">
-                        <h6 class="fs-4 fw-normal mb-0">' . $row['product'] . '</h6>
+                        <h6 class="fs-4 fw-normal mb-0" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['product'] . '</h6>
                         <span class="fw-normal">' . $row['price'] . ' Dhs</span>
                     </div>
                 </div>

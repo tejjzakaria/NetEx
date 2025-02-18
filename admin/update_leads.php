@@ -6,15 +6,15 @@ $data = json_decode(file_get_contents("php://input"), true);
 if ($data && isset($data['id'])) {
     $id = $data['id'];
     $name = strtoupper($data['name']);
-    $phone_number = $data['phone_number'];
+    $phone_number = strtoupper($data['phone_number']);
     $address = strtoupper($data['address']);
     $city = strtoupper($data['city']);
     $product = strtoupper($data['product']);
-    $price = $data['price'];
+    $price = strtoupper($data['price']);
     $agent = strtoupper($data['agent']);
     $status = strtoupper($data['status']);
-    $comission = $data['comission'];
-    $comments = $data['comments'];
+    $comission = strtoupper($data['comission']);
+    $comments = strtoupper($data['comments']);
 
     // Check if the row already exists
     $check_sql = "SELECT * FROM leads WHERE id='$id'";

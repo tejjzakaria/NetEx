@@ -68,14 +68,14 @@ while ($row = mysqli_fetch_assoc($result)) {
                     <div class="d-flex align-items-center">
                         <div class="ms-0">
                             <h6 class="fs-4 fw-normal mb-0">' . $row['tracking_id'] . '</h6>
-                            <span class="fw-normal">' . $row['created_at'] . '</span>
+                            <span class="fw-normal" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['created_at'] . '</span>
                         </div>
                     </div>
                 </td>
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['name'] . '</h6>
+                            <h6 class="fs-4 fw-normal mb-0" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['name'] . '</h6>
                             <span class="fw-normal">' . $row['phone_number'] . '</span>
                         </div>
                     </div>
@@ -83,7 +83,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['address'] . ',</h6>
+                            <h6 class="fs-4 fw-normal mb-0" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['address'] . ',</h6>
                             <span class="fw-normal">' . $row['city'] . '</span>
                         </div>
                     </div>
@@ -112,7 +112,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                         class="mb-1 badge font-medium bg-light-info text-info fs-2">' . $row['full_name'] . '</span>
                 </td>
                 <td>
-                    <p class="mb-0 fw-normal">' . $row['comments'] . '</p>
+                    <p class="mb-0 fw-normal" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['comments'] . '</p>
                 </td>
 
                 <td>

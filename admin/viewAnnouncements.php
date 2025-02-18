@@ -8,9 +8,7 @@ include "fetchUserData.php";
 
 
 
-// Prepare SQL query to get notifications, ordered by notification_id (latest first)
-$sql = "SELECT notifications.*, user_info.full_name FROM notifications 
-        LEFT JOIN user_info ON notifications.userID = user_info.id";
+$sql = "SELECT * FROM announcements"; 
 $result = mysqli_query($conn, $sql);
 
 $table_data = '';
@@ -18,13 +16,21 @@ $table_data = '';
 while ($row = $result->fetch_assoc()) {
 
 
-    if ($row['status'] == 'read') {
+    if ($row['status'] == 'VISIBLE') {
         $status_class = "badge bg-success fw-semibold fs-2";
-        $status_french = "LUE";
-    } else if ($row['status'] == 'unread') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-        $status_french = "NON LUE";
+    } else if ($row['status'] == 'INVISIBLE') {
+        $status_class = "badge bg-danger fw-semibold fs-2";
     }
+
+
+    if ($row['type'] == 'INFO') {
+        $type_class = "badge border border-secondary text-secondary";
+    } else if ($row['type'] == 'DANGER') {
+        $type_class = "badge border border-danger text-danger";
+    } else if ($row['type'] == 'WARNING') {
+        $type_class = "badge border border-warning text-warning";
+    }
+
 
     // Build the table data
     $table_data .= '
@@ -33,25 +39,29 @@ while ($row = $result->fetch_assoc()) {
             <td>
                 <div class="d-flex align-items-center">
                     <div class="ms-0">
-                        <h6 class="fs-4 fw-semibold mb-0">' . $row['id'] . '</h6>
-                        <span class="fw-normal">' . $row['created_at'] . '</span>
+                        <h6 class="fs-4 mb-0">' . $row['id'] . '</h6>
                     </div>
                 </div>
             </td>
             <td>
                     <span
-                        class="mb-1 badge font-medium bg-light-info text-info fs-2">' . $row['full_name'] . '</span>
+                        class="mb-1 badge font-medium bg-light-info text-info">' . $row['visible_to'] . '</span>
+                </td>
+
+            <td>
+                    <span
+                        class="' . $type_class . '">' . $row['type'] . '</span>
                 </td>
             <td>
                 <p class="mb-0 fw-normal" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['message'] . '</p>
             </td>
             <td>
                     <span
-                        class="' . $status_class . '">' . $status_french . '</span>
+                        class="' . $status_class . '">' . $row['status'] . '</span>
                 </td>
             <td>
                 <div class="button-group">
-                    <a class="btn mb-1 btn-secondary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="editNotification.php?id=' . $row['id'] . '">
+                    <a class="btn mb-1 btn-secondary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="editAnnouncement.php?id=' . $row['id'] . '">
                         <i class="fs-5 ti ti-pencil"></i>
                     </a>
                     <a class="btn mb-1 btn-danger btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="confirmDelete(' . $row['id'] . ')">
@@ -76,7 +86,7 @@ mysqli_close($conn);
 
 <head>
     <!--  Title -->
-    <title>Admin - Notifications</title>
+    <title>Admin - Annonces</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -119,11 +129,11 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Notifications</h4>
+                                <h4 class="fw-semibold mb-8">Annonces</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="viewNotifications.php">List Notifications</a>
+                                            <a class="text-muted " href="viewAnnouncements.php">List Annonces</a>
                                         </li>
                                         <li class="breadcrumb-item" aria-current="page">Voir Tous</li>
                                     </ol>
@@ -163,7 +173,10 @@ mysqli_close($conn);
                                                         <h6 class="fs-4 fw-semibold mb-0">ID</h6>
                                                     </th>
                                                     <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Vendeur</h6>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Visible pour</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Type</h6>
                                                     </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">Message</h6>
@@ -633,7 +646,7 @@ mysqli_close($conn);
                     // Create a form and submit it to deleteLead.php
                     const form = document.createElement("form");
                     form.method = "POST";
-                    form.action = "deleteNotification.php"; // Use POST method
+                    form.action = "deleteAnnouncement.php"; // Use POST method
 
                     const input = document.createElement("input");
                     input.type = "hidden";
@@ -689,7 +702,7 @@ mysqli_close($conn);
                     confirmButtonText: "Oui, supprimez-les !"
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        fetch("deleteNotifications.php", {
+                        fetch("deleteAnnouncements.php", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ ids: selectedIds })
@@ -704,7 +717,7 @@ mysqli_close($conn);
                                     Swal.fire({
                                         icon: "success",
                                         title: "Supprimé!",
-                                        text: "Les notifications sélectionnés ont été supprimés.",
+                                        text: "Les annonces sélectionnés ont été supprimés.",
                                         timer: 2000
                                     }).then(() => {
                                         location.reload(); // Reload page after deletion
@@ -715,7 +728,7 @@ mysqli_close($conn);
                                     Swal.fire({
                                         icon: "error",
                                         title: "Error",
-                                        text: "Impossible de supprimer certains ou tous les notifications."
+                                        text: "Impossible de supprimer certains ou tous les annonces."
                                     });
                                 }
                             })

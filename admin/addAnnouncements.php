@@ -6,77 +6,63 @@ include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
+$message = "";
+$alertScript = ''; // This will store the SweetAlert script
+
+// Check if the form has been submitted
+if (isset($_POST['submit'])) {
+    // Get form data
+
+    $message = htmlspecialchars($_POST['message'], ENT_QUOTES, 'UTF-8');
+    $status = htmlspecialchars($_POST['status'], ENT_QUOTES, 'UTF-8');
+    $visible_to = htmlspecialchars($_POST['visible_to'], ENT_QUOTES, 'UTF-8');
+    $type = htmlspecialchars($_POST['type'], ENT_QUOTES, 'UTF-8');
 
 
-// Prepare SQL query to get notifications, ordered by notification_id (latest first)
-$sql = "SELECT notifications.*, user_info.full_name FROM notifications 
-        LEFT JOIN user_info ON notifications.userID = user_info.id";
-$result = mysqli_query($conn, $sql);
+    // Prepare the SQL query
+    $sql = "INSERT INTO announcements (message, status, visible_to, type)
+            VALUES (?, ?, ?, ?)";
 
-$table_data = '';
-
-while ($row = $result->fetch_assoc()) {
-
-
-    if ($row['status'] == 'read') {
-        $status_class = "badge bg-success fw-semibold fs-2";
-        $status_french = "LUE";
-    } else if ($row['status'] == 'unread') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-        $status_french = "NON LUE";
+    // Initialize the prepared statement
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        die("Prepare failed: " . htmlspecialchars($conn->error));
     }
 
-    // Build the table data
-    $table_data .= '
-        <tr>
-        <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="ms-0">
-                        <h6 class="fs-4 fw-semibold mb-0">' . $row['id'] . '</h6>
-                        <span class="fw-normal">' . $row['created_at'] . '</span>
-                    </div>
-                </div>
-            </td>
-            <td>
-                    <span
-                        class="mb-1 badge font-medium bg-light-info text-info fs-2">' . $row['full_name'] . '</span>
-                </td>
-            <td>
-                <p class="mb-0 fw-normal" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['message'] . '</p>
-            </td>
-            <td>
-                    <span
-                        class="' . $status_class . '">' . $status_french . '</span>
-                </td>
-            <td>
-                <div class="button-group">
-                    <a class="btn mb-1 btn-secondary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="editNotification.php?id=' . $row['id'] . '">
-                        <i class="fs-5 ti ti-pencil"></i>
-                    </a>
-                    <a class="btn mb-1 btn-danger btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="confirmDelete(' . $row['id'] . ')">
-                        <i class="fs-5 ti ti-trash"></i>
-                    </a>
-                </div>
-            </td>
-        </tr>
-    ';
+    // Bind the parameters to the query
+    $stmt->bind_param("ssss", $message, $status, $visible_to, $type);
 
+    // Execute the query
+    if ($stmt->execute()) {
+        $alertScript = "
+        <script>
+            Swal.fire({
+              title: 'Annonce ajouté', 
+              text: 'Redirection vers la liste des annonces...',
+              icon: 'success',
+              timer: 3000, // Time in milliseconds (3 seconds)
+              showConfirmButton: false
+            }).then(() => {
+              window.location.href = 'viewAnnouncements.php'; // Redirect after the SweetAlert
+            });
+        </script>
+        ";
+    } else {
+        // Error
+        $message = "<div class='alert alert-danger'>Something went wrong. Please try again!</div>";
+    }
+
+    // Close the statement
+    $stmt->close();
 }
-
-// Close the connection
-mysqli_close($conn);
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <!--  Title -->
-    <title>Admin - Notifications</title>
+    <title>Admin - Add Annonce</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -89,7 +75,6 @@ mysqli_close($conn);
     <!--  Favicon -->
     <link rel="shortcut icon" type="image/png" href="dist/images/logos/favicon.ico" />
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
-    <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
 </head>
 
@@ -119,13 +104,13 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Notifications</h4>
+                                <h4 class="fw-semibold mb-8">Annonces</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="viewNotifications.php">List Notifications</a>
+                                            <a class="text-muted " href="addAnnouncements.php">Nouveau Annonce</a>
                                         </li>
-                                        <li class="breadcrumb-item" aria-current="page">Voir Tous</li>
+                                        <li class="breadcrumb-item" aria-current="page">Ajouter nouveau</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -139,57 +124,88 @@ mysqli_close($conn);
                 </div>
 
 
+                <form method="POST">
+                    <div class="card">
+                        <?php echo $message ?>
 
+                        <div class="card-body p-4 border-bottom">
 
-                <div class="datatables">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-body">
-                                <button id="process-selected" class="btn btn-danger mb-4"
-                                        style="display: none; transition: all 0.5s ease-in-out;"><i
-                                            class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
-                                        sélectionnées</button>
-                                    <div class="table-responsive">
-                                        <table class="table border text-nowrap customize-table mb-0 align-middle"
-                                            id="notifications_table">
-                                            <thead class="text-dark fs-4">
-                                                <tr>
-                                                <th>
-                                                        <input type="checkbox" id="select-all"
-                                                            class="form-check-input contact-chkbox primary">
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">ID</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Vendeur</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Message</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Statut</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Actions</h6>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php echo $table_data; ?>
+                            <div class="row">
+                                <div class="col-lg-4">
 
 
 
-                                            </tbody>
-                                        </table>
 
+
+
+
+                                    <div class="mb-4">
+                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Visible
+                                            à</label>
+                                        <select class="form-select" aria-label="Default select example"
+                                            name="visible_to" required>
+                                            <option value="" disabled>Sélectionnez une option</option>
+                                            <option value="Agents et vendeurs">Agents et vendeurs</option>
+                                            <option value="Agents uniquement">Agents uniquement</option>
+                                            <option value="Vendeurs uniquement">Vendeurs uniquement</option>
+
+                                        </select>
+                                    </div>
+
+
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Statut
+                                        </label>
+                                        <select class="form-select" aria-label="Default select example" name="status"
+                                            required>
+                                            <option value="" disabled>Sélectionnez une option</option>
+                                            <option value="VISIBLE">VISIBLE</option>
+                                            <option value="INVISIBLE">INVISIBLE</option>
+
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Type
+                                        </label>
+                                        <select class="form-select" aria-label="Default select example" name="type"
+                                            required>
+                                            <option value="" disabled>Sélectionnez une option</option>
+                                            <option value="INFO">INFO</option>
+                                            <option value="WARNING">AVERTISSEMENT</option>
+                                            <option value="DANGER">AVERTISSEMENT ROUGE</option>
+
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-12">
+                                    <div class="mb-4">
+                                        <label for="exampleInputPassword1"
+                                            class="form-label fw-semibold">Message</label>
+                                        <textarea type="text" class="form-control" id="exampleInputtext"
+                                            placeholder="Write your message here" name="message" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div class="row">
+
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <button type="submit" name="submit" class="btn btn-primary">Ajouter
+                                            annonce</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
 
 
 
@@ -585,154 +601,22 @@ mysqli_close($conn);
     <!-- current page js files -->
     <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
     <script src="dist/js/dashboard4.js"></script>
-    <script src="../../dist/js/apps/chat.js"></script>
-    <script src="../../dist/libs/apexcharts/dist/apexcharts.min.js"></script>
-    <script src="../../dist/js/widgets-charts.js"></script>
+    <script src="dist/js/apps/chat.js"></script>
+    <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
+    <script src="dist/js/widgets-charts.js"></script>
+    <script src="dist/libs/jquery-steps/build/jquery.steps.min.js"></script>
+    <script src="dist/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="dist/js/forms/form-wizard.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 
-    <script src="dist/libs/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="dist/js/datatable/datatable-basic.init.js"></script>
 
     <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="dist/js/forms/sweet-alert.init.js"></script>
+    <?php echo $alertScript; ?>
 
-    <script>
-        $(document).ready(function () {
-            $('#notifications_table').DataTable({
-                "language": {
-            "lengthMenu": "Afficher _MENU_ entrées",
-            "zeroRecords": "Aucun enregistrement trouvé",
-            "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-            "infoEmpty": "Aucune entrée disponible",
-            "infoFiltered": "(filtré de _MAX_ entrées au total)",
-            "search": "Rechercher:",
-            "paginate": {
-                "first": "Premier",
-                "last": "Dernier",
-                "next": "Suivant",
-                "previous": "Précédent"
-            }
-        }
-            });
-        });
 
-    </script>
-
-    <script>
-        function confirmDelete(id) {
-            Swal.fire({
-                title: "Es-tu sûr?",
-                text: "Vous ne pourrez pas revenir en arrière !",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Oui, supprime-le !"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Create a form and submit it to deleteLead.php
-                    const form = document.createElement("form");
-                    form.method = "POST";
-                    form.action = "deleteNotification.php"; // Use POST method
-
-                    const input = document.createElement("input");
-                    input.type = "hidden";
-                    input.name = "id";
-                    input.value = id; // Set the lead ID
-
-                    form.appendChild(input);
-                    document.body.appendChild(form);
-                    form.submit(); // Submit the form
-                }
-            });
-        }
-    </script>
-
-<script>
-        document.addEventListener("DOMContentLoaded", function () {
-            let deleteButton = document.getElementById("process-selected");
-            deleteButton.style.display = "none"; // Hide button initially
-
-            function updateDeleteButtonVisibility() {
-                let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
-                deleteButton.style.display = anyChecked ? "block" : "none";
-            }
-
-            document.querySelectorAll(".row-select").forEach((checkbox) => {
-                checkbox.addEventListener("change", updateDeleteButtonVisibility);
-            });
-
-            document.getElementById("select-all").addEventListener("change", function () {
-                let isChecked = this.checked;
-                document.querySelectorAll(".row-select").forEach((checkbox) => {
-                    checkbox.checked = isChecked;
-                });
-                updateDeleteButtonVisibility();
-            });
-
-            deleteButton.addEventListener("click", function () {
-                let selectedIds = [];
-
-                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
-                    selectedIds.push(checkbox.value);
-                });
-
-                if (selectedIds.length === 0) return;
-
-                Swal.fire({
-                    title: "Es-tu sûr?",
-                    text: "Vous ne pourrez pas revenir en arrière !",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6",
-                    confirmButtonText: "Oui, supprimez-les !"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch("deleteNotifications.php", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ ids: selectedIds })
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    selectedIds.forEach(id => {
-                                        document.querySelector(`.row-select[value="${id}"]`).closest("tr").remove();
-                                    });
-
-                                    Swal.fire({
-                                        icon: "success",
-                                        title: "Supprimé!",
-                                        text: "Les notifications sélectionnés ont été supprimés.",
-                                        timer: 2000
-                                    }).then(() => {
-                                        location.reload(); // Reload page after deletion
-                                    });
-
-                                    updateDeleteButtonVisibility(); // Hide button if no rows left
-                                } else {
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: "Error",
-                                        text: "Impossible de supprimer certains ou tous les notifications."
-                                    });
-                                }
-                            })
-                            .catch(error => {
-                                Swal.fire({
-                                    icon: "error",
-                                    title: "Error",
-                                    text: "Something went wrong!"
-                                });
-                                console.error("Error:", error);
-                            });
-                    }
-                });
-            });
-        });
-
-    </script>
 </body>
 
 </html>

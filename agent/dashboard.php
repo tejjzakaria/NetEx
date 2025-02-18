@@ -232,6 +232,37 @@ while ($row = mysqli_fetch_assoc($result)) {
     ' . $table_data2;
 
 }
+
+
+$sql = "SELECT * FROM announcements WHERE (visible_to='Agents uniquement' or visible_to='Agents et vendeurs') AND status='VISIBLE' ORDER BY id ASC";
+$result = mysqli_query($conn, $sql);
+$status = '';
+
+$announcement_data = '';
+
+while ($row = mysqli_fetch_assoc($result)) {
+
+  if ($row['type'] == 'WARNING') {
+    $announcement_class = "alert alert-warning";
+  } else if ($row['type'] == 'INFO') {
+    $announcement_class = "alert alert-secondary";
+  } else if ($row['type'] == 'DANGER') {
+    $announcement_class = "alert alert-danger";
+  } 
+
+
+
+  $announcement_data = '
+            <div class="'. $announcement_class .'" role="alert" style="line-height: 2;">
+          '. $row['message'] .'
+        </div>
+    
+    ' . $announcement_data;
+
+}
+
+
+
 mysqli_close($conn);
 
 ?>
@@ -277,16 +308,7 @@ mysqli_close($conn);
       <?php include 'header.php' ?>
       <!-- Header End -->
       <div class="container-fluid">
-        <div class="alert alert-warning" role="alert" style="line-height: 2;">
-          <strong>Avertissement concernant la version bêta : </strong>
-
-          Bienvenue dans la version bêta de notre plateforme ! Veuillez noter
-          qu'il s'agit d'une version préliminaire et que vous pouvez rencontrer des difficultés techniques, des bugs ou
-          des fonctionnalités incomplètes lors de votre utilisation. Nous travaillons activement à l'amélioration et au
-          perfectionnement de la plateforme en fonction de vos commentaires. Votre expérience et vos commentaires sont
-          essentiels au processus de développement et nous apprécions votre compréhension et votre patience pendant que
-          nous continuons à apporter des améliorations. Merci de nous aider à façonner le produit final !
-        </div>
+      <?php echo $announcement_data?>
         <div class="row">
           <div class="col-lg-8">
             <div class="card w-100 bg-light-info overflow-hidden shadow-none">
