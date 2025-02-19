@@ -176,6 +176,39 @@
           
         </li>
 
+
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow" href="#" aria-expanded="false">
+            <span class="d-flex">
+              <i class="ti ti-forklift"></i>
+            </span>
+            <span class="hide-menu">Sourcing</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="viewSuppliers.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">List fournisseurs</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="addSupplier.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">Ajouter fournisseur</span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+
+
+
+
+
         <li class="nav-small-cap">
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
           <span class="hide-menu">Centre d'appel</span>

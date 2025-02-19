@@ -2,21 +2,31 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
+// Time window in seconds (e.g., 5 minutes = 300 seconds)
+$time_window = 300;
 
-// Prepare SQL query to get parcels, ordered by id (latest first)
+// Prepare SQL query to get users, ordered by id (latest first)
 $sql = "SELECT * FROM user_info ORDER BY id DESC";
 $result = mysqli_query($conn, $sql);
 
 $table_data = '';
 
-
 while ($row = mysqli_fetch_assoc($result)) {
 
+    // Check if the user is online (last activity within the last 5 minutes)
+    $is_online = false;
+    if (isset($row['last_activity'])) {
+        $last_activity = strtotime($row['last_activity']);
+        if (time() - $last_activity <= $time_window) {
+            $is_online = true;
+        }
+    }
+
+    // Determine the status class
     if ($row['status'] == 'ACTIVE') {
         $status_class = "badge bg-success fw-semibold fs-2";
     } else if ($row['status'] == 'INACTIVE') {
@@ -25,45 +35,45 @@ while ($row = mysqli_fetch_assoc($result)) {
         $status_class = "badge bg-primary fw-semibold fs-2";
     }
 
+    // Add green dot if the user is online, red dot if offline
+    $dot_class = $is_online ? 'dot online' : 'dot offline';
+    $dot_color = $is_online ? '#57C1AB' : '#F58B6C'; // Set color based on online status
+    $online_dot = '<span class="' . $dot_class . '" style="background-color: ' . $dot_color . '; margin-right:10px;"></span>';
 
-
+    // Create the table row with the user details
     $table_data .= '
-            <tr>
+        <tr>
             <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
-                                <td>
-                                    <p class="mb-0 fw-normal">' . $row['id'] . '</p>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-
-                                        <div class="ms-0">
-                                            <h6 class="fs-4 fw-semibold mb-0">' . $row['full_name'] . '</h6>
-                                            <span class="fw-normal">' . $row['username'] . '</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <p class="mb-0 fw-normal">' . $row['city'] . '</p>
-                                </td>
-                                <td>
-                                    <p class="mb-0 fw-normal" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['address'] . '</p>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-
-                                        <div class="ms-0">
-                                            <h6 class="fs-4 mb-0">' . $row['email'] . '</h6>
-                                            <span class="fw-normal">' . $row['phone_number'] . '</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                    <span
-                        class="' . $status_class . '">' . $row['status'] . '</span>
-                </td>
-                                
-                                <td>
-                    <div class="button-group">
+            <td>
+                <p class="mb-0 fw-normal">' . $row['id'] . '</p>
+            </td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="ms-0">
+                        <h6 class="fs-4 fw-semibold mb-0">' . $online_dot . ' ' . $row['full_name'] . '</h6>
+                        <span class="fw-normal">' . $row['username'] . '</span>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <p class="mb-0 fw-normal">' . $row['city'] . '</p>
+            </td>
+            <td>
+                <p class="mb-0 fw-normal" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['address'] . '</p>
+            </td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="ms-0">
+                        <h6 class="fs-4 mb-0">' . $row['email'] . '</h6>
+                        <span class="fw-normal">' . $row['phone_number'] . '</span>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span class="' . $status_class . '">' . $row['status'] . '</span>
+            </td>
+            <td>
+                <div class="button-group">
                     <a class="btn mb-1 btn-primary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="viewUser(' . $row['id'] . ')">
                         <i class="fs-5 ti ti-eye"></i>
                     </a>
@@ -74,16 +84,15 @@ while ($row = mysqli_fetch_assoc($result)) {
                         <i class="fs-5 ti ti-trash"></i>
                     </a>
                 </div>
-                </td>
-            </tr>
-    
+            </td>
+        </tr>
     ';
-
 }
 
 mysqli_close($conn);
-
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -105,6 +114,27 @@ mysqli_close($conn);
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
     <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
+    <style>
+        /* Green dot for online users */
+        .dot.online {
+            width: 8px;
+            height: 8px;
+            background-color: #56C2AB;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        /* Red dot for offline users */
+        .dot.offline {
+            width: 8px;
+            height: 8px;
+            background-color: #F58B6C;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+        }
+    </style>
 </head>
 
 <body>
@@ -160,7 +190,7 @@ mysqli_close($conn);
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
-                                <button id="process-selected" class="btn btn-danger mb-4"
+                                    <button id="process-selected" class="btn btn-danger mb-4"
                                         style="display: none; transition: all 0.5s ease-in-out;"><i
                                             class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
                                         sélectionnées</button>
@@ -170,7 +200,7 @@ mysqli_close($conn);
                                             id="users_table">
                                             <thead class="text-dark fs-4">
                                                 <tr>
-                                                <th>
+                                                    <th>
                                                         <input type="checkbox" id="select-all"
                                                             class="form-check-input contact-chkbox primary">
                                                     </th>
@@ -736,7 +766,7 @@ mysqli_close($conn);
         }
     </script>
 
-<script>
+    <script>
         document.addEventListener("DOMContentLoaded", function () {
             let deleteButton = document.getElementById("process-selected");
             deleteButton.style.display = "none"; // Hide button initially

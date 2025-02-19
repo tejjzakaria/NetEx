@@ -2,95 +2,116 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Connect to the database
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-// Time window in seconds (e.g., 5 minutes = 300 seconds)
-$time_window = 300;
+// Number of records per page
+$records_per_page = 6;
 
-// Prepare SQL query to get agents, ordered by id (latest first)
-$sql = "SELECT * FROM agent_info ORDER BY id DESC";
+// Get the current page from URL parameters, default is 1
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? $_GET['page'] : 1;
+
+// Calculate the offset for the SQL query
+$offset = ($page - 1) * $records_per_page;
+
+// Get the search term from the form if provided
+$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
+
+// Modify the total count query to include search filtering
+$total_query = "SELECT COUNT(*) as total FROM suppliers WHERE (name LIKE '%$search%' OR country LIKE '%$search%') AND status = 'VISIBLE'";
+
+$total_result = mysqli_query($conn, $total_query);
+$total_row = mysqli_fetch_assoc($total_result);
+$total_suppliers = $total_row['total'];
+
+// Calculate total pages
+$total_pages = ceil($total_suppliers / $records_per_page);
+
+// Modify the main query to include search filtering
+$sql = "SELECT * FROM suppliers WHERE (name LIKE '%$search%' OR country LIKE '%$search%') AND status = 'VISIBLE' ORDER BY id DESC LIMIT $records_per_page OFFSET $offset";
+
 $result = mysqli_query($conn, $sql);
 
 $table_data = '';
-
 while ($row = mysqli_fetch_assoc($result)) {
-    
-    // Check if the agent is online (last activity within the last 5 minutes)
-    $is_online = false;
-    if (isset($row['last_activity'])) {
-        $last_activity = strtotime($row['last_activity']);
-        if (time() - $last_activity <= $time_window) {
-            $is_online = true;
-        }
+
+    $supplier_class = "";
+    if ($row['status'] == "VISIBLE" or $row['status'] == "active") {
+        $supplier_class = "mb-1 badge bg-success";
+    } else if ($row['status'] == "INVISIBLE") {
+        $supplier_class = "mb-1 badge bg-danger";
     }
 
-    // Determine the status class
-    if ($row['status'] == 'ACTIVE') {
-        $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'INACTIVE') {
-        $status_class = "badge bg-danger fw-semibold fs-2";
-    } else {
-        $status_class = "badge bg-primary fw-semibold fs-2";
-    }
-
-    // Add green dot if the agent is online, red dot if offline
-    $dot_class = $is_online ? 'dot online' : 'dot offline';
-    $dot_color = $is_online ? '#57C1AB' : '#F58B6C'; // Set color based on online status
-    $online_dot = '<span class="' . $dot_class . '" style="background-color: ' . $dot_color . '; margin-right:10px;"></span>';
-
-    // Create the table row with the agent details
     $table_data .= '
-        <tr>
-            <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
-            <td>
-                <p class="mb-0 fw-normal">' . $row['id'] . '</p>
-            </td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="ms-0">
-                        <h6 class="fs-4 fw-semibold mb-0">' . $online_dot . ' ' . $row['full_name'] . '</h6>
-                        <span class="fw-normal">' . $row['username'] . '</span>
+        <div class="col-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex flex-row">
+                        <div class="">
+                            <img src="' . $row['logo'] . '" alt="user" class="rounded-circle" width="100" />
+                        </div>
+                        <div class="ps-3">
+                            <h3 class="font-weight-medium fs-14">' . $row['name'] . '</h3>
+                            <h6>' . $row['email'] . '</h6>
+                            <button class="btn btn-secondary">
+                                <i class="ti ti-phone"></i> ' . $row['phone'] . '
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col border-end text-center">
+                            <h2 class="fs-7">' . $row['country'] . '</h2>
+                            <h6 class="mb-0">Pays</h6>
+                        </div>
+                        <div class="col border-end text-center">
+                            <h2 class="fs-7">' . $row['city'] . '</h2>
+                            <h6 class="mb-0">Ville</h6>
+                        </div>
                     </div>
                 </div>
-            </td>
-            <td>
-                <p class="mb-0 fw-normal">' . $row['city'] . '</p>
-            </td>
-            <td>
-                <p class="mb-0 fw-normal" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['address'] . '</p>
-            </td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="ms-0">
-                        <h6 class="fs-4 mb-0">' . $row['email'] . '</h6>
-                        <span class="fw-normal">' . $row['phone_number'] . '</span>
-                    </div>
+                <div>
+                    <hr />
                 </div>
-            </td>
-            <td>
-                <span class="' . $status_class . '">' . $row['status'] . '</span>
-            </td>
-            <td>
-                <div class="button-group">
-                    <a class="btn mb-1 btn-primary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="viewAgent(' . $row['id'] . ')">
-                        <i class="fs-5 ti ti-eye"></i>
-                    </a>
-                    <a class="btn mb-1 btn-secondary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="editAgent.php?id=' . $row['id'] . '">
-                        <i class="fs-5 ti ti-pencil"></i>
-                    </a>
-                    <a class="btn mb-1 btn-danger btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="confirmDelete(' . $row['id'] . ')">
-                        <i class="fs-5 ti ti-trash"></i>
-                    </a>
+                <div class="card-body mb-0 p-0">
+                    <p class="text-center aboutscroll">
+                    <strong>Adresse: </strong>
+                        ' . $row['address'] . '
+                    </p>
                 </div>
-            </td>
-        </tr>
+            </div>
+        </div>
     ';
 }
 
+// Pagination HTML
+$pagination = '<nav aria-label="..."><ul class="pagination justify-content-center mb-0 mt-4">';
+
+// Previous button
+if ($page > 1) {
+    $prev_page = $page - 1;
+    $pagination .= '<li class="page-item"><a class="page-link border-0 rounded-circle text-dark round-32 d-flex align-items-center justify-content-center" href="?search=' . urlencode($search) . '&page=' . $prev_page . '"><i class="ti ti-chevron-left"></i></a></li>';
+}
+
+// Page links
+for ($i = 1; $i <= $total_pages; $i++) {
+    $active_class = $i == $page ? 'active' : '';
+    $pagination .= '<li class="page-item ' . $active_class . '"><a class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center" href="?search=' . urlencode($search) . '&page=' . $i . '">' . $i . '</a></li>';
+}
+
+// Next button
+if ($page < $total_pages) {
+    $next_page = $page + 1;
+    $pagination .= '<li class="page-item"><a class="page-link border-0 rounded-circle text-dark round-32 d-flex align-items-center justify-content-center" href="?search=' . urlencode($search) . '&page=' . $next_page . '"><i class="ti ti-chevron-right"></i></a></li>';
+}
+
+$pagination .= '</ul></nav>';
+
 mysqli_close($conn);
 ?>
+
+
 
 
 <!DOCTYPE html>
@@ -98,7 +119,7 @@ mysqli_close($conn);
 
 <head>
     <!--  Title -->
-    <title>Admin - Agents</title>
+    <title>Fournisseurs</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -113,27 +134,7 @@ mysqli_close($conn);
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
     <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
-    <style>
-        /* Green dot for online users */
-        .dot.online {
-            width: 8px;
-            height: 8px;
-            background-color: #56C2AB;
-            border-radius: 50%;
-            display: inline-block;
-            margin-left: 5px;
-        }
 
-        /* Red dot for offline users */
-        .dot.offline {
-            width: 8px;
-            height: 8px;
-            background-color: #F58B6C;
-            border-radius: 50%;
-            display: inline-block;
-            margin-left: 5px;
-        }
-    </style>
 </head>
 
 <body>
@@ -162,11 +163,11 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Agent</h4>
+                                <h4 class="fw-semibold mb-8">Fournisseurs</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="viewAgents.php">List Agent</a>
+                                            <a class="text-muted " href="viewSuppliers.php">List Fournisseurs</a>
                                         </li>
                                         <li class="breadcrumb-item" aria-current="page">Voir Tous</li>
                                     </ol>
@@ -181,68 +182,20 @@ mysqli_close($conn);
                     </div>
                 </div>
 
-
-
-
-
-                <div class="datatables">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <button id="process-selected" class="btn btn-danger mb-4"
-                                        style="display: none; transition: all 0.5s ease-in-out;"><i
-                                            class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
-                                        sélectionnées</button>
-                                    <div class="table-responsive">
-                                        <table class="table border text-nowrap customize-table mb-0 align-middle"
-                                            id="users_table">
-                                            <thead class="text-dark fs-4">
-                                                <tr>
-                                                    <th>
-                                                        <input type="checkbox" id="select-all"
-                                                            class="form-check-input contact-chkbox primary">
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">ID</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Nom</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Ville</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Adresse</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Contact</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Statut</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Actions</h6>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php echo $table_data ?>
-
-
-
-
-
-
-                                            </tbody>
-                                        </table>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <form method="GET">
+                    <div class="input-group mb-3">
+                        <input type="text" name="search" class="form-control"
+                            placeholder="Rechercher par nom ou pays..."
+                            value="<?php echo isset($_GET['search']) ? $_GET['search'] : ''; ?>">
+                        <button class="btn btn-primary" type="submit">Rechercher</button>
                     </div>
+                </form>
+
+                <div class="row">
+                    <?php echo $table_data; ?>
                 </div>
+
+                <?php echo $pagination; ?>
 
 
 
@@ -638,37 +591,12 @@ mysqli_close($conn);
     <!-- current page js files -->
     <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
     <script src="dist/js/dashboard4.js"></script>
-    <script src="../../dist/js/apps/chat.js"></script>
-    <script src="../../dist/libs/apexcharts/dist/apexcharts.min.js"></script>
-    <script src="../../dist/js/widgets-charts.js"></script>
+    <script src="dist/js/apps/chat.js"></script>
+    <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
+    <script src="dist/js/widgets-charts.js"></script>
 
     <script src="dist/libs/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="dist/js/datatable/datatable-basic.init.js"></script>
-
-    <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
-    <script src="dist/js/forms/sweet-alert.init.js"></script>
-
-
-    <script>
-        $(document).ready(function () {
-            $('#users_table').DataTable({
-                "language": {
-                    "lengthMenu": "Afficher _MENU_ entrées",
-                    "zeroRecords": "Aucun enregistrement trouvé",
-                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                    "infoEmpty": "Aucune entrée disponible",
-                    "infoFiltered": "(filtré de _MAX_ entrées au total)",
-                    "search": "Rechercher:",
-                    "paginate": {
-                        "first": "Premier",
-                        "last": "Dernier",
-                        "next": "Suivant",
-                        "previous": "Précédent"
-                    }
-                }
-            });
-        });
-    </script>
+    <script src="dist/js/datatable/datatable-api.init.js"></script>
 
     <script>
         function confirmDelete(id) {
@@ -679,13 +607,14 @@ mysqli_close($conn);
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
                 cancelButtonColor: "#d33",
-                confirmButtonText: "Oui, supprime-le !"
+                confirmButtonText: "Oui, supprime-le !",
+                cancelButtonText: "Annuler",
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Create a form and submit it to deleteLead.php
                     const form = document.createElement("form");
                     form.method = "POST";
-                    form.action = "deleteAgent.php"; // Use POST method
+                    form.action = "deleteSupplier.php"; // Use POST method
 
                     const input = document.createElement("input");
                     input.type = "hidden";
@@ -698,140 +627,11 @@ mysqli_close($conn);
                 }
             });
         }
-
-        function viewAgent(id) {
-            // Send AJAX request to fetch lead details
-            fetch("getAgentDetails.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: "id=" + id,
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        Swal.fire("Erreur", data.error, "error");
-                    } else {
-                        // Display lead details in SweetAlert
-                        Swal.fire({
-                            title: "Détails d'agent",
-                            html: `
-                <div class="details" style="text-align: left; margin: 20px; line-height: 2;">
-                    <div class="row d-flex align-items-center justify-content-between">
-                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-secondary text-secondary">ID: ${data.id}</span></div>
-                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-warning text-warning">${data.created_at}</span></div>
-                        
-
-                    </div>
-                    <strong>Nom:</strong> ${data.full_name} <br>
-                    <strong>CIN:</strong> ${data.cin} <br>
-                    <strong>Adresse:</strong> ${data.address}, ${data.city} <br>
-                    <strong>Email:</strong> ${data.email} <br>
-                    <strong>Telephone:</strong> ${data.phone_number}  <br>
-                    <strong>Banque:</strong> ${data.bank_name}  <br>
-                    <strong>Numéro de compte:</strong> ${data.bank_account}  <br>
-                    <strong>Nom d'utilisateur:</strong> ${data.username}  <br>
-                    <strong>Statut:</strong> <span class="${data.status_class}">${data.status}</span><br>
-                </div>
-                `,
-                            icon: "info",
-                            confirmButtonText: "Fermer"
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error("Erreur:", error);
-                    Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
-                });
-        }
     </script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            let deleteButton = document.getElementById("process-selected");
-            deleteButton.style.display = "none"; // Hide button initially
 
-            function updateDeleteButtonVisibility() {
-                let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
-                deleteButton.style.display = anyChecked ? "block" : "none";
-            }
-
-            document.querySelectorAll(".row-select").forEach((checkbox) => {
-                checkbox.addEventListener("change", updateDeleteButtonVisibility);
-            });
-
-            document.getElementById("select-all").addEventListener("change", function () {
-                let isChecked = this.checked;
-                document.querySelectorAll(".row-select").forEach((checkbox) => {
-                    checkbox.checked = isChecked;
-                });
-                updateDeleteButtonVisibility();
-            });
-
-            deleteButton.addEventListener("click", function () {
-                let selectedIds = [];
-
-                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
-                    selectedIds.push(checkbox.value);
-                });
-
-                if (selectedIds.length === 0) return;
-
-                Swal.fire({
-                    title: "Es-tu sûr?",
-                    text: "Vous ne pourrez pas revenir en arrière !",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6",
-                    confirmButtonText: "Oui, supprimez-les !"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch("deleteAgents.php", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ ids: selectedIds })
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    selectedIds.forEach(id => {
-                                        document.querySelector(`.row-select[value="${id}"]`).closest("tr").remove();
-                                    });
-
-                                    Swal.fire({
-                                        icon: "success",
-                                        title: "Supprimé!",
-                                        text: "Les agents sélectionnés ont été supprimés.",
-                                        timer: 2000
-                                    }).then(() => {
-                                        location.reload(); // Reload page after deletion
-                                    });
-
-                                    updateDeleteButtonVisibility(); // Hide button if no rows left
-                                } else {
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: "Error",
-                                        text: "Impossible de supprimer certains ou tous les agents."
-                                    });
-                                }
-                            })
-                            .catch(error => {
-                                Swal.fire({
-                                    icon: "error",
-                                    title: "Error",
-                                    text: "Something went wrong!"
-                                });
-                                console.error("Error:", error);
-                            });
-                    }
-                });
-            });
-        });
-
-    </script>
+    <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
+    <script src="dist/js/forms/sweet-alert.init.js"></script>
 
 </body>
 

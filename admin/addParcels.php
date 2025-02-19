@@ -12,7 +12,7 @@ $userDataP = mysqli_query($conn, $sql_);
 $alertScript = ''; // This will store the SweetAlert script
 
 
-// Generate tracking number
+// Generate tracking number 
 $tracking_id = strtoupper(substr(md5(uniqid(rand(), true)), 0, 10));
 
 $message = "";

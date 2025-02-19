@@ -1,6 +1,7 @@
 <?php
 include "../config.php";
 include 'fetchUserData.php';
+include "updateActivity.php";
 
 $userID = $_SESSION['userID'];
 

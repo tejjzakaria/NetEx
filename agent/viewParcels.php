@@ -29,27 +29,27 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 
 
-    if ($row['state'] == 'Payé') {
+    if ($row['state'] == 'PAYÉ') {
         $state_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['state'] == 'Non payé') {
+    } else if ($row['state'] == 'NON PAYÉ') {
         $state_class = "badge bg-danger fw-semibold fs-2";
     } else {
         $state_class = "badge bg-primary fw-semibold fs-2";
     }
 
-    if ($row['status'] == 'livré') {
+    if ($row['status'] == 'LIVRÉ' or $row['status'] == 'livre') {
         $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'refusé') {
+    } else if ($row['status'] == 'REFUSÉ' or $row['status'] == 'Refusé') {
         $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'annulé') {
+    } else if ($row['status'] == 'ANNULÉ' or $row['status'] == 'Annulé') {
         $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'pas de réponse') {
+    } else if ($row['status'] == 'RETOURNÉ' or $row['status'] == 'Retourné') {
+        $status_class = "badge bg-danger fw-semibold fs-2";
+    } else if ($row['status'] == 'PAS DE RÉPONSE' or $row['status'] == 'Pas de réponse') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'occupé') {
+    } else if ($row['status'] == 'OCCUPÉ' or $row['status'] == 'Occupé') {
         $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'annulé') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'message whatsapp') {
+    } else if ($row['status'] == 'MESSAGE WHATSAPP' or $row['status'] == 'MSJ WTSP') {
         $status_class = "badge bg-warning fw-semibold fs-2";
     } else {
         $status_class = "badge bg-primary fw-semibold fs-2";

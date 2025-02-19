@@ -6,7 +6,7 @@ include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-$sql = "SELECT * FROM leads WHERE userID='$userID'"; 
+$sql = "SELECT * FROM leads WHERE userID='$userID'";
 $result = mysqli_query($conn, $sql);
 $status = '';
 
@@ -41,7 +41,7 @@ while ($row = mysqli_fetch_assoc($result)) {
             <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
                 <td>
                     <div class="d-flex align-items-center">
-                        <div class="ms-0">
+                        <div class="ms-0" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">
                             <h6 class="fs-4 fw-normal mb-0">' . $row['tracking_id'] . '</h6>
                             <span class="fw-normal">' . $row['created_at'] . '</span>
                         </div>
@@ -50,14 +50,14 @@ while ($row = mysqli_fetch_assoc($result)) {
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['name'] . '</h6>
+                            <h6 class="fs-4 fw-normal mb-0" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['name'] . '</h6>
                             <span class="fw-normal">' . $row['phone_number'] . '</span>
                         </div>
                     </div>
                 </td>
                 <td>
                     <div class="d-flex align-items-center">
-                        <div class="ms-0">
+                        <div class="ms-0" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">
                             <h6 class="fs-4 fw-normal mb-0">' . $row['address'] . ',</h6>
                             <span class="fw-normal">' . $row['city'] . '</span>
                         </div>
@@ -65,7 +65,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                 </td>
                 <td>
                     <div class="d-flex align-items-center">
-                        <div class="ms-0">
+                        <div class="ms-0" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">
                             <h6 class="fs-4 fw-normal mb-0">' . $row['product'] . '</h6>
                             <span class="fw-normal">' . $row['price'] . ' Dhs</span>
                             
@@ -74,20 +74,20 @@ while ($row = mysqli_fetch_assoc($result)) {
                 </td>
                 <td>
                     <span
-                        class="badge bg-warning fw-semibold fs-2"></i>' . $row['agent'] . '</span>
+                        class="badge bg-warning fw-semibold fs-2" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;"></i>' . $row['agent'] . '</span>
                 </td>
                 
                 
                 <td>
                     <span
-                        class="' . $status_class . '">' . $row['status'] . '</span>
+                        class="' . $status_class . '" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['status'] . '</span>
                 </td>
                 <td>
                     <span
                         class="mb-1 badge font-medium bg-light-secondary text-secondary fs-2">' . $row['comission'] . ' Dhs</span>
                 </td>
                 <td>
-                    <p class="mb-0 fw-normal">' . $row['comments'] . '</p>
+                    <p class="mb-0 fw-normal" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['comments'] . '</p>
                 </td>
                 <td>
                     <div class="dropdown dropstart">
@@ -96,6 +96,14 @@ while ($row = mysqli_fetch_assoc($result)) {
                             <i class="ti ti-dots fs-5"></i>
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButto"
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-3" href="#" onclick="viewLead(' . $row['id'] . ')"><i
+                                        class="fs-4 ti ti-eye"></i>Details</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-3" href="#" onclick="viewFollowUp(' . $row['id'] . ')"><i
+                                        class="fs-4 ti ti-info-square-rounded"></i>Suivi</a>
+                            </li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center gap-3" href="editLead.php?id=' . $row['id'] . '"><i
                                         class="fs-4 ti ti-edit"></i>Modifier</a>
@@ -191,22 +199,26 @@ mysqli_close($conn);
                     </div>
                 </div>
 
-
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-secondary mb-3" id="syncButton"><i class="fs-6 ti ti-refresh"
+                            style="margin-right: 6px;"></i>Synchroniser les données</button>
+                </div>
                 <div class="datatables">
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                    <button id="process-selected" class="btn btn-danger mb-4"
-                                        style="display: none; transition: all 0.5s ease-in-out;"><i
-                                            class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
-                                        sélectionnées</button>
+                                        <button id="process-selected" class="btn btn-danger mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out;"><i
+                                                class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les
+                                            lignes
+                                            sélectionnées</button>
                                         <table class="table border text-nowrap customize-table mb-0 align-middle"
                                             id="leads_table">
                                             <thead class="text-dark fs-4">
                                                 <tr>
-                                                <th> 
+                                                    <th>
                                                         <input type="checkbox" id="select-all"
                                                             class="form-check-input contact-chkbox primary">
                                                     </th>
@@ -484,19 +496,19 @@ mysqli_close($conn);
                 "ordering": true,
                 "pageLength": 10,
                 "language": {
-            "lengthMenu": "Afficher _MENU_ entrées",
-            "zeroRecords": "Aucun enregistrement trouvé",
-            "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-            "infoEmpty": "Aucune entrée disponible",
-            "infoFiltered": "(filtré de _MAX_ entrées au total)",
-            "search": "Rechercher:",
-            "paginate": {
-                "first": "Premier",
-                "last": "Dernier",
-                "next": "Suivant",
-                "previous": "Précédent"
-            }
-        }
+                    "lengthMenu": "Afficher _MENU_ entrées",
+                    "zeroRecords": "Aucun enregistrement trouvé",
+                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                    "infoEmpty": "Aucune entrée disponible",
+                    "infoFiltered": "(filtré de _MAX_ entrées au total)",
+                    "search": "Rechercher:",
+                    "paginate": {
+                        "first": "Premier",
+                        "last": "Dernier",
+                        "next": "Suivant",
+                        "previous": "Précédent"
+                    }
+                }
             });
         });
     </script>
@@ -529,10 +541,115 @@ mysqli_close($conn);
                 }
             });
         }
+
+
+        function viewLead(id) {
+            // Send AJAX request to fetch lead details
+            fetch("getLeadDetails.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: "id=" + id,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        Swal.fire("Erreur", data.error, "error");
+                    } else {
+                        // Display lead details in SweetAlert
+                        Swal.fire({
+                            title: "Détails du Lead",
+                            html: `
+                <div class="details" style="text-align: left; margin: 20px; line-height: 2;">
+                    <div class="row d-flex align-items-center justify-content-between">
+                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-secondary text-secondary">ID: ${data.tracking_id}</span></div>
+                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-warning text-warning">${data.created_at}</span></div>
+                        
+
+                    </div>
+                    <strong>Nom:</strong> ${data.name} <br>
+                    <strong>Téléphone:</strong> ${data.phone_number} <br>
+                    <strong>Adresse:</strong> ${data.address}, ${data.city} <br>
+                    <strong>Produit:</strong> ${data.product} <br>
+                    <strong>Prix:</strong> ${data.price} Dhs <br>
+                    <strong>Agent:</strong> <span class="mb-1 badge bg-light-info text-info">${data.agent} </span><br>
+                    <strong>Status:</strong> <span class="${data.status_class}">${data.status}</span><br>
+
+                    <strong>Commission:</strong> ${data.comission} Dhs <br>
+                    <strong>Commentaires:</strong> ${data.comments} <br>
+                </div>
+                `,
+                            icon: "info",
+                            confirmButtonText: "Fermer"
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("Erreur:", error);
+                    Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
+                });
+        }
+
+
+
+        function viewFollowUp(id) {
+            fetch("getFollowUpDetails.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: "id=" + id,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        Swal.fire("Erreur", data.error, "error");
+                    } else {
+                        // Construct timeline HTML
+                        let timelineHtml = '<ul class="timeline-widget mb-0 position-relative mb-n5">';
+
+                        data.forEach(followUp => {
+                            timelineHtml += `
+                    <li class="timeline-item d-flex position-relative overflow-hidden">
+                        <div class="timeline-time text-dark flex-shrink-0 text-end fs-3">
+                            ${followUp.created_at}
+                        </div>
+                        <div class="timeline-badge-wrap d-flex flex-column align-items-center">
+                            <span class="timeline-badge border-2 border border-primary flex-shrink-0 my-8"></span>
+                            <span class="timeline-badge-border d-block flex-shrink-0"></span>
+                        </div>
+                        <div class="timeline-desc fs-3 text-dark mt-n1">
+                            <p>${followUp.message ? followUp.message : 'Rien à afficher'}</p>
+                        </div>
+                    </li>
+                `;
+                        });
+
+                        timelineHtml += "</ul>";
+
+                        // Display lead details in SweetAlert
+                        Swal.fire({
+                            title: "Suivi",
+                            html: `
+        <div class="timeline-container d-flex flex-column" style="height: 35vh; overflow-y: auto;">
+            ${timelineHtml}
+        </div>
+    `,
+                            icon: "question",
+                            confirmButtonText: "Fermer"
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("Erreur:", error);
+                    Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
+                });
+        }
     </script>
 
 
-<script>
+    <script>
         document.addEventListener("DOMContentLoaded", function () {
             let deleteButton = document.getElementById("process-selected");
             deleteButton.style.display = "none"; // Hide button initially
@@ -616,6 +733,38 @@ mysqli_close($conn);
             });
         });
 
+    </script>
+
+
+    <script>
+        document.getElementById("syncButton").addEventListener("click", function () {
+            fetch('update_leads.php') // Adjust the path if needed
+                .then(response => response.json())
+                .then(data => {
+                    if (data.updated > 0 || data.inserted > 0) {
+                        Swal.fire({
+                            title: "Succès!",
+                            text: `${data.inserted} nouveaux leads ajoutés, ${data.updated} leads synchronisés.`,
+                            icon: "success"
+                        }).then(() => {
+                            location.reload(); // Reload page after deletion
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Aucun changement",
+                            text: "Aucune nouvelle donnée n’a été extraite de la feuille.",
+                            icon: "info"
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Une erreur s'est produite lors de la synchronisation des données.",
+                        icon: "error"
+                    });
+                });
+        });
     </script>
 
 </body>

@@ -96,6 +96,14 @@ $is_offers_page = $current_page === 'offers.php';
             <span class="hide-menu">Stock</span>
           </a>
         </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" href="viewSuppliers.php" aria-expanded="false">
+            <span>
+              <i class="ti ti-forklift"></i>
+            </span>
+            <span class="hide-menu">Sourcing</span>
+          </a>
+        </li>
 
         
 

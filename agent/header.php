@@ -1,5 +1,6 @@
 <?php
 include 'fetchUserData.php';
+include "updateActivity.php";
 
 // $sql = "SELECT COUNT(*) AS notification_count FROM notifications WHERE userID='$userID'";
 // $result = mysqli_query($conn, $sql);
