@@ -1,101 +1,74 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-// Connect to the database
+
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-$sql_ = "SELECT id, full_name FROM user_info";
-$userDataP = mysqli_query($conn, $sql_);
+// SQL query to fetch required data
+$sql = "SELECT * FROM user_stores WHERE userID = $userID ORDER by id DESC";
 
-$sql_ = "SELECT id, full_name FROM agent_info";
-$agentDataP = mysqli_query($conn, $sql_);
+$result = mysqli_query($conn, $sql);
+$table_data = '';
 
-$tracking_id = strtoupper(substr(md5(uniqid(rand(), true)), 0, 10));
-$message = '';
-$alertScript = ''; // This will store the SweetAlert script
+while ($row = mysqli_fetch_assoc($result)) {
+    // Check if array keys exist to prevent warnings
+    $store_id = isset($row['id']) ? $row['id'] : 'N/A';
+    $created_at = isset($row['created_at']) ? $row['created_at'] : 'N/A';
+    $store_url = isset($row['store_url']) ? $row['store_url'] : 'N/A';
+    $full_name = isset($row['full_name']) ? $row['full_name'] : 'N/A';
+    $store_name = isset($row['store_name']) ? $row['store_name'] : 'N/A';
 
+    $table_data .= '
+        <tr>
+        <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="ms-0" style="max-width: 300px; word-wrap: break-word; white-space: normal;">
+                        <h6 class="fs-4 fw-normal mb-0">' . htmlspecialchars($store_id) . '</h6>
+                        <span class="fw-normal">' . htmlspecialchars($created_at) . '</span>
+                    </div>
+                </div>
+            </td>
 
-if (isset($_POST['submit'])) {
-    // Get form data
-    $userID = $_POST['userID'];  // Assuming userID is stored in session
-    $name = $_POST['name'];
-    $tracking_id = $_POST['tracking_id'];
-    $phone_number = $_POST['phone_number'];
-    $price = $_POST['price'];
-    $city = $_POST['city'];
-    $product = $_POST['product'];
-    $address = $_POST['address'];
-    $comments = $_POST['comments'];
-    $agent = $_POST['agentID'];
-    $status = $_POST['status'];
+            
 
-    // Initialize product_comission variable
-    $product_comission = 0;
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="ms-0">
+                        <h6 class="fs-4 fw-normal mb-0">' . htmlspecialchars($store_name) . '</h6>
+                        <span class="fw-normal">' . htmlspecialchars($store_url) . '</span>
+                    </div>
+                </div>
+            </td>
 
-    // Prepare the SQL query to get the product_comission
-    $sql_comission = "SELECT product_comission FROM stock_requests WHERE product_name = ?";
-
-    // Initialize the prepared statement
-    if ($stmt_comission = $conn->prepare($sql_comission)) {
-        $stmt_comission->bind_param("s", $product);
-        $stmt_comission->execute();
-        $stmt_comission->bind_result($product_comission);
-        $stmt_comission->fetch();
-        $stmt_comission->close();
-    }
-
-    $store = $_POST['store']; // Get selected store
-
-    $sql = "INSERT INTO leads (userID, name, tracking_id, phone_number, price, city, product, address, comments, agent, status, comission, store_name)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssssssssss", $userID, $name, $tracking_id, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $product_comission, $store);
-
-
-
-    // Execute the query
-    if ($stmt->execute()) {
-        $alertScript = "
-        <script>
-            Swal.fire({
-              title: 'Lead ajouté', 
-              text: 'Redirection vers la liste des leads...',
-              icon: 'success',
-              timer: 3000, // Time in milliseconds (3 seconds)
-              showConfirmButton: false
-            }).then(() => {
-              window.location.href = 'viewLeads.php'; // Redirect after the SweetAlert
-            });
-        </script>
-        ";
-    } else {
-        // Error
-        $message = "<div class='alert alert-danger'>Something went wrong. Please try again!</div>";
-    }
-
-    // Close the statement
-    $stmt->close();
+            <td>
+                <div class="button-group">
+                    <a class="btn mb-1 btn-secondary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="editStore.php?id=' . htmlspecialchars($store_id) . '">
+                        <i class="fs-5 ti ti-pencil"></i>
+                    </a>
+                    <a class="btn mb-1 btn-danger btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="confirmDelete(' . htmlspecialchars($store_id) . ')">
+                        <i class="fs-5 ti ti-trash"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+    ';
 }
-
-
-$sql_ = "SELECT product_name FROM stock_requests";
-$productData = mysqli_query($conn, $sql_);
-
 mysqli_close($conn);
-
-
-
 ?>
+
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <!--  Title -->
-    <title>Admin - Ajouter Lead</title>
+    <title>Admin - Boutiques</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -108,8 +81,29 @@ mysqli_close($conn);
     <!--  Favicon -->
     <link rel="shortcut icon" type="image/png" href="dist/images/logos/favicon.ico" />
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
+    <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
+    <style>
+        /* Green dot for online users */
+        .dot.online {
+            width: 8px;
+            height: 8px;
+            background-color: #56C2AB;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+        }
 
+        /* Red dot for offline users */
+        .dot.offline {
+            width: 8px;
+            height: 8px;
+            background-color: #F58B6C;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+        }
+    </style>
 </head>
 
 <body>
@@ -138,13 +132,13 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Leads</h4>
+                                <h4 class="fw-semibold mb-8">Boutiques</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="addLead.php">Ajouter Lead</a>
+                                            <a class="text-muted " href="viewStores.php">List Boutiques</a>
                                         </li>
-                                        <li class="breadcrumb-item" aria-current="page">Ajouter Nouveau</li>
+                                        <li class="breadcrumb-item" aria-current="page">Voir Tous</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -157,196 +151,91 @@ mysqli_close($conn);
                     </div>
                 </div>
 
+                <div class="d-flex align-items-center justify-content-between">
 
-                <form method="POST">
-                    <div class="card">
-
-
-                        <div class="card-body p-4 border-bottom">
-                            <?php echo $message; ?>
-
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Nom</label>
-                                        <input type="text" class="form-control" id="exampleInputtext"
-                                            placeholder="John Doe" name="name" required>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Téléphone</label>
-                                        <input type="text" class="form-control" id="exampleInputtext"
-                                            placeholder="06 00 00 00 00" name="phone_number" required>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="" class="form-label fw-semibold">Ville</label>
-                                        <select class="form-select" aria-label="Default select example" name="city"
-                                            required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="Casablanca">Casablanca</option>
-                                            <option value="Rabat">Rabat</option>
-                                            <option value="Fes">Fes</option>
-                                            <option value="Marrakesh">Marrakesh</option>
-                                            <option value="Tangier">Tangier</option>
-                                            <option value="Agadir">Agadir</option>
-                                            <option value="Meknes">Meknes</option>
-                                            <option value="Oujda">Oujda</option>
-                                            <option value="Kenitra">Kenitra</option>
-                                            <option value="Tetouan">Tetouan</option>
-                                            <option value="Safi">Safi</option>
-                                            <option value="Khouribga">Khouribga</option>
-                                            <option value="El Jadida">El Jadida</option>
-                                            <option value="Nador">Nador</option>
-                                            <option value="Beni Mellal">Beni Mellal</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Adresse</label>
-                                        <textarea type="text" class="form-control" id="exampleInputtext"
-                                            placeholder="Rue, code postal" name="address" required></textarea>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Vendeur</label>
-                                        <select class="form-select" aria-label="Default select example" name="userID"
-                                            id="userID" required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-
-                                            <?php
-                                            while ($row = mysqli_fetch_assoc($userDataP)) {
-                                                $userID = htmlspecialchars($row['id']);
-                                                $full_name = htmlspecialchars($row['full_name']);
-                                                echo "<option value='$userID'>$full_name</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Status</label>
-                                        <select class="form-select" aria-label="Default select example" name="status"
-                                            required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="Confirmer">Confirmer</option>
-                                            <option value="Confirmer Relance">Confirmer Relance</option>
-                                            <option value="Rappel">Rappel</option>
-                                            <option value="Appel X4">Appel X4</option>
-                                            <option value="Boite Vocale">Boite Vocale</option>
-                                            <option value="Pas de réponse">Pas de réponse</option>
-                                            <option value="Occupé">Occupé</option>
-                                            <option value="Annulé">Annulé</option>
-                                            <option value="Msj Wtsp">Msj Wtsp</option>
-                                            <option value="Nouveau colis">Nouveau colis</option>
-                                            <option value="Rammasser">Rammasser</option>
-                                            <option value="Nouveau colis: reporté">Nouveau colis: reporté</option>
-                                            <option value="Nouveau colis: change">Nouveau colis: change</option>
-                                        </select>
-                                    </div>
+                    <div class="d-flex align-items-center">
+                        <a href="" onclick="window.location.reload(true);"><button class="btn btn-secondary mb-3"
+                                style="margin-right: 10px;"><i class="ti ti-refresh"
+                                    style="margin-right: 6px;"></i>Actualiser les
+                                données</button></a>
 
 
+                    </div>
+
+                    <a href="addStore.php"><button class="btn btn-outline-dark mb-3"><i class="ti ti-plus"
+                                style="margin-right: 6px;"></i>Nouveau</button></a>
+
+                </div>
 
 
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">
-                                            ID</label>
-                                        <input type="text" class="form-control" id="exampleInputtext" readonly
-                                            value="<?php echo $tracking_id; ?>" name="tracking_id" required>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Prix</label>
-                                        <input type="number" class="form-control" id="exampleInputtext"
-                                            placeholder="299" name="price" required>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="" class="form-label fw-semibold">Produit</label>
-                                        <select class="form-select" aria-label="Default select example" name="product"
-                                            required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                            <?php
-                                            // Loop through the businesses and create options
-                                            while ($row = mysqli_fetch_assoc($productData)) {
-                                                $product_name = htmlspecialchars($row['product_name']); // Sanitize output
-                                                echo "<option value='$product_name'>$product_name</option>";
-                                            }
-                                            ?>
+                <div class="datatables">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <button id="process-selected" class="btn btn-danger mb-4"
+                                        style="display: none; transition: all 0.5s ease-in-out;"><i
+                                            class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
+                                        sélectionnées</button>
+                                    <div class="table-responsive">
 
-                                        </select>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Commentaires</label>
-                                        <textarea type="text" name="comments" class="form-control" id="exampleInputtext"
-                                            placeholder="Ajouter info ici" required></textarea>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="store" class="form-label fw-semibold">Boutique</label>
-                                        <select class="form-select" id="store" name="store" required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Agent</label>
-                                        <select class="form-select" aria-label="Default select example" name="agentID">
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="pas encore attributé">pas encore attributé</option>
-                                            <?php
-                                            // Loop through the users and create options
-                                            while ($row = mysqli_fetch_assoc($agentDataP)) {
-                                                $agentID = htmlspecialchars($row['id']);  // Sanitize output
-                                                $full_name = htmlspecialchars($row['full_name']);
-
-                                                // Output the option with the selected attribute if it's the current user
-                                                echo "<option value='$full_name'>$full_name</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
+                                        <table class="table border text-nowrap customize-table mb-0 align-middle"
+                                            id="users_table">
+                                            <thead class="text-dark fs-4">
+                                                <tr>
+                                                    <th>
+                                                        <input type="checkbox" id="select-all"
+                                                            class="form-check-input contact-chkbox primary">
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">ID</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Nom de boutique</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Actions</h6>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php echo $table_data ?>
 
 
 
 
 
 
+                                            </tbody>
+                                        </table>
 
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="row">
-
-                                <div class="col-12">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <button type="submit" name="submit" class="btn btn-primary">Ajouter
-                                            lead</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </form>
-
-
-
-
-
-
+                </div>
             </div>
+
+
+
+
+
+
+
+
+
         </div>
-        <div class="dark-transparent sidebartoggler"></div>
-        <div class="dark-transparent sidebartoggler"></div>
+    </div>
+    <div class="dark-transparent sidebartoggler"></div>
+    <div class="dark-transparent sidebartoggler"></div>
     </div>
     <!--  Shopping Cart -->
     <div class="offcanvas offcanvas-end shopping-cart" tabindex="-1" id="offcanvasRight"
         aria-labelledby="offcanvasRightLabel">
         <div class="offcanvas-header py-4">
-            <h5 class="offcanvas-title fs-5 fw-semibold" id="offcanvasRightLabel">Shopping Cart</h5>
+            <h5 class="offcanvas-title fs-5 fw-semibold" id="offcanvasRightLabel">Shopping Cart
+            </h5>
             <span class="badge bg-primary rounded-4 px-3 py-1 lh-sm">5 new</span>
         </div>
         <div class="offcanvas-body h-100 px-4 pt-0" data-simplebar>
@@ -435,7 +324,8 @@ mysqli_close($conn);
                         <span class="text-dark fw-semibold fs-3">$6830</span>
                     </div>
                 </div>
-                <a href="./eco-checkout.html" class="btn btn-outline-primary w-100">Go to shopping cart</a>
+                <a href="./eco-checkout.html" class="btn btn-outline-primary w-100">Go to
+                    shopping cart</a>
             </div>
         </div>
     </div>
@@ -466,7 +356,8 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Chat Application</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">New messages arrived</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">New
+                                            messages arrived</span>
                                     </div>
                                 </a>
                             </li>
@@ -479,7 +370,8 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Invoice App</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">Get latest invoice</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">Get
+                                            latest invoice</span>
                                     </div>
                                 </a>
                             </li>
@@ -491,8 +383,10 @@ mysqli_close($conn);
                                             width="24" height="24">
                                     </div>
                                     <div class="d-inline-block">
-                                        <h6 class="mb-1 bg-hover-primary">Contact Application</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">2 Unsaved Contacts</span>
+                                        <h6 class="mb-1 bg-hover-primary">Contact Application
+                                        </h6>
+                                        <span class="fs-2 d-block fw-normal text-muted">2
+                                            Unsaved Contacts</span>
                                     </div>
                                 </a>
                             </li>
@@ -505,7 +399,8 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Email App</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">Get new emails</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">Get new
+                                            emails</span>
                                     </div>
                                 </a>
                             </li>
@@ -518,7 +413,8 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">User Profile</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">learn more information</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">learn
+                                            more information</span>
                                     </div>
                                 </a>
                             </li>
@@ -531,7 +427,8 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Calendar App</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">Get dates</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">Get
+                                            dates</span>
                                     </div>
                                 </a>
                             </li>
@@ -543,8 +440,10 @@ mysqli_close($conn);
                                             width="24" height="24">
                                     </div>
                                     <div class="d-inline-block">
-                                        <h6 class="mb-1 bg-hover-primary">Contact List Table</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">Add new contact</span>
+                                        <h6 class="mb-1 bg-hover-primary">Contact List Table
+                                        </h6>
+                                        <span class="fs-2 d-block fw-normal text-muted">Add new
+                                            contact</span>
                                     </div>
                                 </a>
                             </li>
@@ -557,7 +456,8 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Notes Application</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">To-do and Daily tasks</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">To-do
+                                            and Daily tasks</span>
                                     </div>
                                 </a>
                             </li>
@@ -569,7 +469,8 @@ mysqli_close($conn);
                                     <a class="fw-semibold text-dark" href="#">Pricing Page</a>
                                 </li>
                                 <li class="sidebar-item py-2">
-                                    <a class="fw-semibold text-dark" href="#">Authentication Design</a>
+                                    <a class="fw-semibold text-dark" href="#">Authentication
+                                        Design</a>
                                 </li>
                                 <li class="sidebar-item py-2">
                                     <a class="fw-semibold text-dark" href="#">Register Now</a>
@@ -581,10 +482,12 @@ mysqli_close($conn);
                                     <a class="fw-semibold text-dark" href="#">Notes App</a>
                                 </li>
                                 <li class="sidebar-item py-2">
-                                    <a class="fw-semibold text-dark" href="#">User Application</a>
+                                    <a class="fw-semibold text-dark" href="#">User
+                                        Application</a>
                                 </li>
                                 <li class="sidebar-item py-2">
-                                    <a class="fw-semibold text-dark" href="#">Account Settings</a>
+                                    <a class="fw-semibold text-dark" href="#">Account
+                                        Settings</a>
                                 </li>
                             </ul>
                         </ul>
@@ -729,30 +632,154 @@ mysqli_close($conn);
     <script src="../../dist/libs/apexcharts/dist/apexcharts.min.js"></script>
     <script src="../../dist/js/widgets-charts.js"></script>
 
+    <script src="dist/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="dist/js/datatable/datatable-basic.init.js"></script>
 
     <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="dist/js/forms/sweet-alert.init.js"></script>
-    <?php echo $alertScript; ?>
+
 
     <script>
         $(document).ready(function () {
-            $('#userID').change(function () {
-                var userID = $(this).val();
-                if (userID) {
-                    $.ajax({
-                        url: 'fetchStores.php',
-                        type: 'POST',
-                        data: { userID: userID },
-                        success: function (response) {
-                            $('#store').html(response);
-                        }
-                    });
-                } else {
-                    $('#store').html('<option value="">Sélectionner une boutique</option>');
+            $('#users_table').DataTable({
+                "language": {
+                    "lengthMenu": "Afficher _MENU_ entrées",
+                    "zeroRecords": "Aucun enregistrement trouvé",
+                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                    "infoEmpty": "Aucune entrée disponible",
+                    "infoFiltered": "(filtré de _MAX_ entrées au total)",
+                    "search": "Rechercher:",
+                    "paginate": {
+                        "first": "Premier",
+                        "last": "Dernier",
+                        "next": "Suivant",
+                        "previous": "Précédent"
+                    }
                 }
             });
         });
     </script>
+
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: "Es-tu sûr?",
+                text: "Vous ne pourrez pas revenir en arrière !",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Oui, supprime-le !"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Create a form and submit it to deleteLead.php
+                    const form = document.createElement("form");
+                    form.method = "POST";
+                    form.action = "deleteStore.php"; // Use POST method
+
+                    const input = document.createElement("input");
+                    input.type = "hidden";
+                    input.name = "id";
+                    input.value = id; // Set the lead ID
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit(); // Submit the form
+                }
+            });
+        }
+
+        
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let deleteButton = document.getElementById("process-selected");
+            deleteButton.style.display = "none"; // Hide button initially
+
+            function updateDeleteButtonVisibility() {
+                let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
+                deleteButton.style.display = anyChecked ? "block" : "none";
+            }
+
+            document.querySelectorAll(".row-select").forEach((checkbox) => {
+                checkbox.addEventListener("change", updateDeleteButtonVisibility);
+            });
+
+            document.getElementById("select-all").addEventListener("change", function () {
+                let isChecked = this.checked;
+                document.querySelectorAll(".row-select").forEach((checkbox) => {
+                    checkbox.checked = isChecked;
+                });
+                updateDeleteButtonVisibility();
+            });
+
+            deleteButton.addEventListener("click", function () {
+                let selectedIds = [];
+
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: "Vous ne pourrez pas revenir en arrière !",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Oui, supprimez-les !"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("deleteStores.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    selectedIds.forEach(id => {
+                                        document.querySelector(`.row-select[value="${id}"]`).closest("tr").remove();
+                                    });
+
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Supprimé!",
+                                        text: "Les vendeurs sélectionnés ont été supprimés.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload(); // Reload page after deletion
+                                    });
+
+                                    updateDeleteButtonVisibility(); // Hide button if no rows left
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: "Impossible de supprimer certains ou tous les vendeurs."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "Something went wrong!"
+                                });
+                                console.error("Error:", error);
+                            });
+                    }
+                });
+            });
+        });
+
+    </script>
+
+
+
 </body>
 
 </html>

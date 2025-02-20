@@ -10,9 +10,9 @@ include 'fetchUserData.php';
                     <i class="ti ti-menu-2"></i>
                 </a>
             </li>
-            
+
         </ul>
-        
+
         <div class="d-block d-lg-none">
             <img src="dist/images/logos/dark-logo.svg" class="dark-logo" width="180" alt="" />
             <img src="dist/images/logos/light-logo.svg" class="light-logo" width="180" alt="" />
@@ -31,9 +31,37 @@ include 'fetchUserData.php';
                     <i class="ti ti-align-justified fs-7"></i>
                 </a>
                 <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-center">
-                    
-                    
-                    
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="dist/images/svgs/icon-flag-en.svg" alt=""
+                                class="rounded-circle object-fit-cover round-20">
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up" aria-labelledby="drop2">
+                            <div class="message-body" data-simplebar>
+                                <a href="javascript:void(0)"
+                                    class="d-flex align-items-center gap-2 py-3 px-4 dropdown-item">
+                                    <div class="position-relative">
+                                        <img src="dist/images/svgs/icon-flag-en.svg" alt=""
+                                            class="rounded-circle object-fit-cover round-20">
+                                    </div>
+                                    <p class="mb-0 fs-3">English</p>
+                                </a>
+                                
+                                <a href="javascript:void(0)"
+                                    class="d-flex align-items-center gap-2 py-3 px-4 dropdown-item">
+                                    <div class="position-relative">
+                                        <img src="dist/images/svgs/icon-flag-fr.svg" alt=""
+                                            class="rounded-circle object-fit-cover round-20">
+                                    </div>
+                                    <p class="mb-0 fs-3">Français</p>
+                                </a>
+                                
+                            </div>
+                        </div>
+                    </li>
+
                     <li class="nav-item dropdown">
                         <a class="nav-link pe-0" href="javascript:void(0)" id="drop1" data-bs-toggle="dropdown"
                             aria-expanded="false">
@@ -63,9 +91,59 @@ include 'fetchUserData.php';
                                         </p>
                                     </div>
                                 </div>
-                                
+
+                                <div class="message-body">
+
+
+                                    <a href="viewSpreadsheets.php" class="py-8 px-7 mt-8 d-flex align-items-center">
+                                        <span
+                                            class="d-flex align-items-center justify-content-center bg-light rounded-1 p-6">
+                                            <i class="ti ti-table fs-7"></i>
+                                        </span>
+                                        <div class="w-75 d-inline-block v-middle ps-3">
+                                            <h6 class="mb-1 bg-hover-primary fw-semibold">Feuilles de calcul </h6>
+                                            <span class="d-block text-dark">Paramètres Google Sheets</span>
+                                        </div>
+                                    </a>
+
+                                    <a href="viewUsers.php" class="py-8 px-7 mt-8 d-flex align-items-center">
+                                        <span
+                                            class="d-flex align-items-center justify-content-center bg-light rounded-1 p-6">
+                                            <i class="ti ti-user fs-7"></i>
+                                        </span>
+                                        <div class="w-75 d-inline-block v-middle ps-3">
+                                            <h6 class="mb-1 bg-hover-primary fw-semibold">Vendeurs </h6>
+                                            <span class="d-block text-dark">Paramètres Compte Vendeurs</span>
+                                        </div>
+                                    </a>
+
+                                    <a href="viewAgents.php" class="py-8 px-7 mt-8 d-flex align-items-center">
+                                        <span
+                                            class="d-flex align-items-center justify-content-center bg-light rounded-1 p-6">
+                                            <i class="ti ti-headset fs-7"></i>
+                                        </span>
+                                        <div class="w-75 d-inline-block v-middle ps-3">
+                                            <h6 class="mb-1 bg-hover-primary fw-semibold">Agents </h6>
+                                            <span class="d-block text-dark">Paramètres Compte Agents</span>
+                                        </div>
+                                    </a>
+
+                                    <a href="support.php" class="py-8 px-7 mt-8 d-flex align-items-center">
+                                        <span
+                                            class="d-flex align-items-center justify-content-center bg-light rounded-1 p-6">
+                                            <i class="ti ti-help fs-7"></i>
+                                        </span>
+                                        <div class="w-75 d-inline-block v-middle ps-3">
+                                            <h6 class="mb-1 bg-hover-primary fw-semibold">Support </h6>
+                                            <span class="d-block text-dark">Paramètres Tickets</span>
+                                        </div>
+                                    </a>
+
+
+                                </div>
+
                                 <div class="d-grid py-4 px-7 pt-8">
-                                    
+
                                     <a href="logout.php" class="btn btn-outline-primary">Se déconnecter</a>
                                 </div>
                             </div>

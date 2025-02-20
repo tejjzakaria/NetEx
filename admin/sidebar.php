@@ -100,6 +100,34 @@
         <li class="sidebar-item">
           <a class="sidebar-link has-arrow" href="#" aria-expanded="false">
             <span class="d-flex">
+              <i class="ti ti-brand-appgallery"></i>
+            </span>
+            <span class="hide-menu">Boutiques</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="viewStores.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">List boutiques</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="addStore.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">Ajouter boutique</span>
+              </a>
+            </li>
+            
+          </ul>
+        </li>
+
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow" href="#" aria-expanded="false">
+            <span class="d-flex">
               <i class="ti ti-users"></i>
             </span>
             <span class="hide-menu">Agents</span>

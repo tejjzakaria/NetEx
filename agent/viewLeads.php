@@ -6,7 +6,7 @@ include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-$sql = "SELECT * FROM leads WHERE agent = '$agentName' OR agent = 'pas encore attribué'";
+$sql = "SELECT * FROM leads WHERE agent = '$agentName' OR agent = 'pas encore attribué' OR agent = 'pas encore attributé'";
 $result = mysqli_query($conn, $sql);
 $status = '';
 
@@ -83,7 +83,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                             <span class="fw-normal" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['city'] . '</span>
                         </div>
                     </div>
-                </td>
+                </td> 
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="ms-0">
@@ -139,7 +139,21 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 }
 
+$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE status='CONFIRMER' AND agent = '$agentName'";
+$result = mysqli_query($conn, $sql);
+$confirmedParcels = mysqli_fetch_assoc($result)['confirmed'];
 
+$sql = "SELECT COUNT(*) AS new FROM leads WHERE (status='NOUVEAU' OR status='NOUVEAU COLIS') AND agent = '$agentName'";
+$result = mysqli_query($conn, $sql);
+$newParcels = mysqli_fetch_assoc($result)['new'];
+
+$sql = "SELECT COUNT(*) AS collected FROM leads WHERE (status='RAMMASSER' OR status='rammassé') AND agent = '$agentName'";
+$result = mysqli_query($conn, $sql);
+$collectedParcels = mysqli_fetch_assoc($result)['collected'];
+
+$sql = "SELECT COUNT(*) AS problems FROM leads WHERE (status='RAPPEL' OR status='APPEL X4' OR status='BOITE VOCALE' OR status='PAS DE RÉPONSE' OR status='OCCUPÉ' OR status='MSJ WTSP') AND agent = '$agentName'";
+$result = mysqli_query($conn, $sql);
+$problemsParcels = mysqli_fetch_assoc($result)['problems'];
 
 mysqli_close($conn);
 
@@ -213,8 +227,39 @@ mysqli_close($conn);
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="" class="p-4 text-center bg-light-success card shadow-none rounded-2">
+
+                            <p class="fw-semibold text-success mb-1">Confirmés</p>
+                            <h4 class="fw-semibold text-success mb-0"><?php echo $confirmedParcels ?></h4>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="" class="p-4 text-center bg-light-primary card shadow-none rounded-2">
+
+                            <p class="fw-semibold text-primary mb-1">Nouveau</p>
+                            <h4 class="fw-semibold text-primary mb-0"><?php echo $newParcels ?></h4>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="" class="p-4 text-center bg-light-warning card shadow-none rounded-2">
+
+                            <p class="fw-semibold text-warning mb-1">Rammassé</p>
+                            <h4 class="fw-semibold text-warning mb-0"><?php echo $collectedParcels ?></h4>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="" class="p-4 text-center bg-light-danger card shadow-none rounded-2">
+
+                            <p class="fw-semibold text-danger mb-1">Attente de suivi</p>
+                            <h4 class="fw-semibold text-danger mb-0"><?php echo $problemsParcels ?></h4>
+                        </a>
+                    </div>
+                </div>
+
                 <div class="d-flex align-items-center">
-                    <button class="btn btn-secondary mb-3" id="syncButton"><i class="fs-6 ti ti-refresh"
+                    <button class="btn btn-secondary mb-3" id="syncButton"><i class="ti ti-refresh"
                             style="margin-right: 6px;"></i>Synchroniser les données</button>
                 </div>
                 <div class="datatables">

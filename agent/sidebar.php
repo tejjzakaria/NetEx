@@ -10,7 +10,7 @@ $current_page = basename(parse_url($current_url, PHP_URL_PATH));
 // Check if the current page is 'offers.php'
 $is_offers_page = $current_page === 'offers.php';
 
-$sql = "SELECT COUNT(*) AS new FROM leads WHERE agent='pas encore attribué'";
+$sql = "SELECT COUNT(*) AS new FROM leads WHERE agent='pas encore attribué' OR agent='pas encore attributé'";
 $result = mysqli_query($conn, $sql);
 $newLeads = mysqli_fetch_assoc($result)['new'];
 ?>

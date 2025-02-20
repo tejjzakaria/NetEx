@@ -9,10 +9,15 @@ include "fetchUserData.php";
 // Time window in seconds (e.g., 5 minutes = 300 seconds)
 $time_window = 300;
 
-// Prepare SQL query to get users, ordered by id (latest first)
-$sql = "SELECT * FROM user_info ORDER BY id DESC";
-$result = mysqli_query($conn, $sql);
+// Prepare SQL query to get users and their stores
+$sql = "SELECT user_info.*, 
+               GROUP_CONCAT(user_stores.store_name SEPARATOR '|') AS stores 
+        FROM user_info 
+        LEFT JOIN user_stores ON user_info.id = user_stores.userID 
+        GROUP BY user_info.id 
+        ORDER BY user_info.id DESC";
 
+$result = mysqli_query($conn, $sql);
 $table_data = '';
 
 while ($row = mysqli_fetch_assoc($result)) {
@@ -35,10 +40,15 @@ while ($row = mysqli_fetch_assoc($result)) {
         $status_class = "badge bg-primary fw-semibold fs-2";
     }
 
-    // Add green dot if the user is online, red dot if offline
+    // Online status dot
     $dot_class = $is_online ? 'dot online' : 'dot offline';
-    $dot_color = $is_online ? '#57C1AB' : '#F58B6C'; // Set color based on online status
+    $dot_color = $is_online ? '#57C1AB' : '#F58B6C';
     $online_dot = '<span class="' . $dot_class . '" style="background-color: ' . $dot_color . '; margin-right:10px;"></span>';
+
+    // Convert stores into individual span tags
+    $stores = !empty($row['stores']) 
+        ? implode(' ', array_map(fn($store) => '<span class="badge bg-secondary me-1 fs-2 mb-2">' . htmlspecialchars($store) . '</span>', explode('|', $row['stores'])))
+        : '<span class="badge bg-light text-dark fs-2">Aucune boutique</span>';
 
     // Create the table row with the user details
     $table_data .= '
@@ -56,10 +66,12 @@ while ($row = mysqli_fetch_assoc($result)) {
                 </div>
             </td>
             <td>
-                <p class="mb-0 fw-normal">' . $row['city'] . '</p>
-            </td>
-            <td>
-                <p class="mb-0 fw-normal" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['address'] . '</p>
+                <div class="d-flex align-items-center" style="max-width: 400px; word-wrap: break-word; white-space: normal;">
+                    <div class="ms-0">
+                        <h6 class="fs-4 fw-normal mb-0">' . $row['address'] . ',</h6>
+                        <span class="fw-normal">' . $row['city'] . '</span>
+                    </div>
+                </div>
             </td>
             <td>
                 <div class="d-flex align-items-center">
@@ -68,6 +80,9 @@ while ($row = mysqli_fetch_assoc($result)) {
                         <span class="fw-normal">' . $row['phone_number'] . '</span>
                     </div>
                 </div>
+            </td>
+            <td style="max-width: 400px; word-wrap: break-word; white-space: normal;">
+                ' . $stores . '
             </td>
             <td>
                 <span class="' . $status_class . '">' . $row['status'] . '</span>
@@ -91,6 +106,8 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 mysqli_close($conn);
 ?>
+
+
 
 
 
@@ -182,7 +199,21 @@ mysqli_close($conn);
                     </div>
                 </div>
 
+                <div class="d-flex align-items-center justify-content-between">
 
+                    <div class="d-flex align-items-center">
+                        <a href="" onclick="window.location.reload(true);"><button class="btn btn-secondary mb-3"
+                                style="margin-right: 10px;"><i class="ti ti-refresh"
+                                    style="margin-right: 6px;"></i>Actualiser les
+                                données</button></a>
+
+
+                    </div>
+
+                    <a href="addUser.php"><button class="btn btn-outline-dark mb-3"><i class="ti ti-plus"
+                                style="margin-right: 6px;"></i>Nouveau</button></a>
+
+                </div>
 
 
                 <div class="datatables">
@@ -211,13 +242,13 @@ mysqli_close($conn);
                                                         <h6 class="fs-4 fw-semibold mb-0">Nom</h6>
                                                     </th>
                                                     <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Ville</h6>
-                                                    </th>
-                                                    <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">Adresse</h6>
                                                     </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">Contact</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Boutiques</h6>
                                                     </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">Statut</h6>

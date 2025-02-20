@@ -1,101 +1,74 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-// Connect to the database
+
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-$sql_ = "SELECT id, full_name FROM user_info";
-$userDataP = mysqli_query($conn, $sql_);
 
-$sql_ = "SELECT id, full_name FROM agent_info";
-$agentDataP = mysqli_query($conn, $sql_);
-
-$tracking_id = strtoupper(substr(md5(uniqid(rand(), true)), 0, 10));
-$message = '';
-$alertScript = ''; // This will store the SweetAlert script
-
+$alertScript = "";
+$message = "";
 
 if (isset($_POST['submit'])) {
-    // Get form data
-    $userID = $_POST['userID'];  // Assuming userID is stored in session
-    $name = $_POST['name'];
-    $tracking_id = $_POST['tracking_id'];
-    $phone_number = $_POST['phone_number'];
-    $price = $_POST['price'];
-    $city = $_POST['city'];
-    $product = $_POST['product'];
-    $address = $_POST['address'];
-    $comments = $_POST['comments'];
-    $agent = $_POST['agentID'];
-    $status = $_POST['status'];
+    $userID = $_SESSION['userID'];
+    $store_names = $_POST['store_names'];
+    $store_urls = $_POST['store_urls'];
 
-    // Initialize product_comission variable
-    $product_comission = 0;
-
-    // Prepare the SQL query to get the product_comission
-    $sql_comission = "SELECT product_comission FROM stock_requests WHERE product_name = ?";
-
-    // Initialize the prepared statement
-    if ($stmt_comission = $conn->prepare($sql_comission)) {
-        $stmt_comission->bind_param("s", $product);
-        $stmt_comission->execute();
-        $stmt_comission->bind_result($product_comission);
-        $stmt_comission->fetch();
-        $stmt_comission->close();
+    if (empty($userID) || empty($store_names) || empty($store_urls)) {
+        $alertScript = "<script>
+                Swal.fire('Erreur', 'Veuillez remplir tous les champs', 'error');
+              </script>";
+        exit;
     }
 
-    $store = $_POST['store']; // Get selected store
+    $errors = [];
+    $success = false;
 
-    $sql = "INSERT INTO leads (userID, name, tracking_id, phone_number, price, city, product, address, comments, agent, status, comission, store_name)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    for ($i = 0; $i < count($store_names); $i++) {
+        $store_name = mysqli_real_escape_string($conn, trim($store_names[$i]));
+        $store_url = mysqli_real_escape_string($conn, trim($store_urls[$i]));
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssssssssss", $userID, $name, $tracking_id, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $product_comission, $store);
+        if (!empty($store_name) && !empty($store_url)) {
+            $sql = "INSERT INTO user_stores (userID, store_name, store_url) VALUES ('$userID', '$store_name', '$store_url')";
+            if (!mysqli_query($conn, $sql)) {
+                $errors[] = "Erreur lors de l'ajout de '$store_name'";
+            } else {
+                $success = true;
+            }
+        }
+    }
 
+    mysqli_close($conn);
 
-
-    // Execute the query
-    if ($stmt->execute()) {
-        $alertScript = "
-        <script>
-            Swal.fire({
-              title: 'Lead ajouté', 
-              text: 'Redirection vers la liste des leads...',
+    if ($success) {
+        $alertScript = "<script>
+                Swal.fire({
+              title: 'Boutiques(s) ajouté', 
+              text: 'Redirection vers la liste des boutiques...',
               icon: 'success',
               timer: 3000, // Time in milliseconds (3 seconds)
               showConfirmButton: false
             }).then(() => {
-              window.location.href = 'viewLeads.php'; // Redirect after the SweetAlert
+              window.location.href = 'viewStores.php'; // Redirect after the SweetAlert
             });
-        </script>
-        ";
-    } else {
-        // Error
-        $message = "<div class='alert alert-danger'>Something went wrong. Please try again!</div>";
+              </script>";
+    } elseif (!empty($errors)) {
+        $alertScript = "<script>
+                Swal.fire('Erreur', '" . implode("<br>", $errors) . "', 'error');
+              </script>";
     }
-
-    // Close the statement
-    $stmt->close();
 }
-
-
-$sql_ = "SELECT product_name FROM stock_requests";
-$productData = mysqli_query($conn, $sql_);
-
-mysqli_close($conn);
-
-
-
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <!--  Title -->
-    <title>Admin - Ajouter Lead</title>
+    <title>Admin - Ajouter Boutique</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -109,7 +82,6 @@ mysqli_close($conn);
     <link rel="shortcut icon" type="image/png" href="dist/images/logos/favicon.ico" />
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
-
 </head>
 
 <body>
@@ -138,13 +110,13 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Leads</h4>
+                                <h4 class="fw-semibold mb-8">Boutiques</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="addLead.php">Ajouter Lead</a>
+                                            <a class="text-muted " href="addStore.php">Nouveau Boutique</a>
                                         </li>
-                                        <li class="breadcrumb-item" aria-current="page">Ajouter Nouveau</li>
+                                        <li class="breadcrumb-item" aria-current="page">Ajouter nouveau</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -158,179 +130,54 @@ mysqli_close($conn);
                 </div>
 
 
-                <form method="POST">
+                <form method="POST" id="storeForm">
                     <div class="card">
-
+                        <?php echo $message; ?>
 
                         <div class="card-body p-4 border-bottom">
-                            <?php echo $message; ?>
+                            
 
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Nom</label>
-                                        <input type="text" class="form-control" id="exampleInputtext"
-                                            placeholder="John Doe" name="name" required>
+                            <div id="storeContainer">
+                                <div class="row storeRow">
+                                    <div class="col-lg-5">
+                                        <div class="mb-4">
+                                            <label class="form-label fw-semibold">Nom de boutique</label>
+                                            <input type="text" class="form-control" name="store_names[]"
+                                                placeholder="Entrez le nom de boutique" required>
+                                        </div>
                                     </div>
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Téléphone</label>
-                                        <input type="text" class="form-control" id="exampleInputtext"
-                                            placeholder="06 00 00 00 00" name="phone_number" required>
+                                    <div class="col-lg-5">
+                                        <div class="mb-4">
+                                            <label class="form-label fw-semibold">URL de boutique</label>
+                                            <input type="url" class="form-control" name="store_urls[]"
+                                                placeholder="Entrez l'URL de la boutique" required>
+                                        </div>
                                     </div>
-                                    <div class="mb-4">
-                                        <label for="" class="form-label fw-semibold">Ville</label>
-                                        <select class="form-select" aria-label="Default select example" name="city"
-                                            required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="Casablanca">Casablanca</option>
-                                            <option value="Rabat">Rabat</option>
-                                            <option value="Fes">Fes</option>
-                                            <option value="Marrakesh">Marrakesh</option>
-                                            <option value="Tangier">Tangier</option>
-                                            <option value="Agadir">Agadir</option>
-                                            <option value="Meknes">Meknes</option>
-                                            <option value="Oujda">Oujda</option>
-                                            <option value="Kenitra">Kenitra</option>
-                                            <option value="Tetouan">Tetouan</option>
-                                            <option value="Safi">Safi</option>
-                                            <option value="Khouribga">Khouribga</option>
-                                            <option value="El Jadida">El Jadida</option>
-                                            <option value="Nador">Nador</option>
-                                            <option value="Beni Mellal">Beni Mellal</option>
-                                        </select>
+                                    <div class="col-lg-2 d-flex align-items-center">
+                                        <button type="button" class="btn btn-danger removeRow"
+                                            style="display: none;">✖</button>
                                     </div>
-
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Adresse</label>
-                                        <textarea type="text" class="form-control" id="exampleInputtext"
-                                            placeholder="Rue, code postal" name="address" required></textarea>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Vendeur</label>
-                                        <select class="form-select" aria-label="Default select example" name="userID"
-                                            id="userID" required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-
-                                            <?php
-                                            while ($row = mysqli_fetch_assoc($userDataP)) {
-                                                $userID = htmlspecialchars($row['id']);
-                                                $full_name = htmlspecialchars($row['full_name']);
-                                                echo "<option value='$userID'>$full_name</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Status</label>
-                                        <select class="form-select" aria-label="Default select example" name="status"
-                                            required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="Confirmer">Confirmer</option>
-                                            <option value="Confirmer Relance">Confirmer Relance</option>
-                                            <option value="Rappel">Rappel</option>
-                                            <option value="Appel X4">Appel X4</option>
-                                            <option value="Boite Vocale">Boite Vocale</option>
-                                            <option value="Pas de réponse">Pas de réponse</option>
-                                            <option value="Occupé">Occupé</option>
-                                            <option value="Annulé">Annulé</option>
-                                            <option value="Msj Wtsp">Msj Wtsp</option>
-                                            <option value="Nouveau colis">Nouveau colis</option>
-                                            <option value="Rammasser">Rammasser</option>
-                                            <option value="Nouveau colis: reporté">Nouveau colis: reporté</option>
-                                            <option value="Nouveau colis: change">Nouveau colis: change</option>
-                                        </select>
-                                    </div>
-
-
-
-
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">
-                                            ID</label>
-                                        <input type="text" class="form-control" id="exampleInputtext" readonly
-                                            value="<?php echo $tracking_id; ?>" name="tracking_id" required>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Prix</label>
-                                        <input type="number" class="form-control" id="exampleInputtext"
-                                            placeholder="299" name="price" required>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="" class="form-label fw-semibold">Produit</label>
-                                        <select class="form-select" aria-label="Default select example" name="product"
-                                            required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                            <?php
-                                            // Loop through the businesses and create options
-                                            while ($row = mysqli_fetch_assoc($productData)) {
-                                                $product_name = htmlspecialchars($row['product_name']); // Sanitize output
-                                                echo "<option value='$product_name'>$product_name</option>";
-                                            }
-                                            ?>
-
-                                        </select>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Commentaires</label>
-                                        <textarea type="text" name="comments" class="form-control" id="exampleInputtext"
-                                            placeholder="Ajouter info ici" required></textarea>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="store" class="form-label fw-semibold">Boutique</label>
-                                        <select class="form-select" id="store" name="store" required>
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Agent</label>
-                                        <select class="form-select" aria-label="Default select example" name="agentID">
-                                            <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="pas encore attributé">pas encore attributé</option>
-                                            <?php
-                                            // Loop through the users and create options
-                                            while ($row = mysqli_fetch_assoc($agentDataP)) {
-                                                $agentID = htmlspecialchars($row['id']);  // Sanitize output
-                                                $full_name = htmlspecialchars($row['full_name']);
-
-                                                // Output the option with the selected attribute if it's the current user
-                                                echo "<option value='$full_name'>$full_name</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
-
-
-
-
-
-
-
                                 </div>
                             </div>
+
+                            <button type="button" id="addStoreRow" class="btn btn-success">+ Ajouter une ligne</button>
                         </div>
+
                         <div class="card-body p-4">
                             <div class="row">
-
                                 <div class="col-12">
                                     <div class="d-flex align-items-center gap-3">
                                         <button type="submit" name="submit" class="btn btn-primary">Ajouter
-                                            lead</button>
+                                            Boutique(s)</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
+
+
+
 
 
 
@@ -725,10 +572,38 @@ mysqli_close($conn);
     <!-- current page js files -->
     <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
     <script src="dist/js/dashboard4.js"></script>
-    <script src="../../dist/js/apps/chat.js"></script>
-    <script src="../../dist/libs/apexcharts/dist/apexcharts.min.js"></script>
-    <script src="../../dist/js/widgets-charts.js"></script>
+    <script src="dist/js/apps/chat.js"></script>
+    <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
+    <script src="dist/js/widgets-charts.js"></script>
+    <script src="dist/libs/jquery-steps/build/jquery.steps.min.js"></script>
+    <script src="dist/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="dist/js/forms/form-wizard.js"></script>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // When user is selected
+            $('select[name="userID"]').on('change', function () {
+                var userID = $(this).val(); // Get selected user ID
+
+                if (userID) {
+                    // AJAX request
+                    $.ajax({
+                        url: 'get_parcels.php', // The file that will handle the request
+                        type: 'POST',
+                        data: { userID: userID },
+                        success: function (response) {
+                            // Parse the JSON response and populate the parcels dropdown
+                            $('select[name="parcels[]"]').html(response); // Fill the parcels select box
+                        }
+                    });
+                } else {
+                    $('select[name="parcels[]"]').html('<option value="">Select User First</option>');
+                }
+            });
+        });
+    </script>
 
     <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="dist/js/forms/sweet-alert.init.js"></script>
@@ -736,23 +611,39 @@ mysqli_close($conn);
 
     <script>
         $(document).ready(function () {
-            $('#userID').change(function () {
-                var userID = $(this).val();
-                if (userID) {
-                    $.ajax({
-                        url: 'fetchStores.php',
-                        type: 'POST',
-                        data: { userID: userID },
-                        success: function (response) {
-                            $('#store').html(response);
-                        }
-                    });
-                } else {
-                    $('#store').html('<option value="">Sélectionner une boutique</option>');
+            $("#addStoreRow").click(function () {
+                let newRow = `
+                <div class="row storeRow">
+                    <div class="col-lg-5">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Nom de boutique</label>
+                            <input type="text" class="form-control" name="store_names[]" placeholder="Entrez le nom de boutique" required>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">URL de boutique</label>
+                            <input type="url" class="form-control" name="store_urls[]" placeholder="Entrez l'URL de la boutique" required>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 d-flex align-items-center">
+                        <button type="button" class="btn btn-danger removeRow">✖</button>
+                    </div>
+                </div>`;
+                $("#storeContainer").append(newRow);
+                $(".removeRow").show();
+            });
+
+            $(document).on("click", ".removeRow", function () {
+                $(this).closest(".storeRow").remove();
+                if ($(".storeRow").length === 1) {
+                    $(".removeRow").hide();
                 }
             });
         });
     </script>
+
+
 </body>
 
 </html>

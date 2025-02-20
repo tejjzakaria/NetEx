@@ -4,7 +4,7 @@ ini_set('display_errors', 1);
 // Connect to the database
 include "../config.php";
 include "checkSession.php";
-include "fetchUserData.php";
+include "fetchUserData.php"; 
 
 $sql = "SELECT * FROM support WHERE agentName = '$agentName'";
 $result = mysqli_query($conn, $sql);
@@ -173,7 +173,17 @@ mysqli_close($conn);
                     patience pendant que nous continuons à nous améliorer !
                 </div>
 
-                <div style="display: flex; justify-content: flex-start;"><a class="btn btn-rounded btn-primary mb-9" href="addTicket.php">Ajouter un ticket</a>
+                <div class="d-flex align-items-center justify-content-between">
+
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-secondary mb-3" id="syncButton" style="margin-right: 10px;"><i
+                                class="ti ti-refresh" style="margin-right: 6px;"></i>Synchroniser les
+                            données</button>
+                    </div>
+
+                    <a href="addTicket.php"><button class="btn btn-outline-dark mb-3"><i
+                                    class="ti ti-plus" style="margin-right: 6px;"></i>Nouveau</button></a>
+
                 </div>
 
                 <div class="datatables">

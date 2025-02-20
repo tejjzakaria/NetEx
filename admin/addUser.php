@@ -10,51 +10,52 @@ include "fetchUserData.php";
 // Initialize the message variable
 $message = "";
 $alertScript = ''; // This will store the SweetAlert script
+$alertScript2 = ''; // This will store the SweetAlert script
 
 // Check if the form is submitted
 if (isset($_POST['submit'])) {
-  // Get form data
-  $full_name = $_POST['full_name'];
-  $cin = $_POST['cin'];
-  $email = $_POST['email'];
-  $phone_number = $_POST['phone_number'];
-  $city = $_POST['city'];
-  $address = $_POST['address'];
-  $bank_name = $_POST['bank_name'];
-  $bank_account = $_POST['bank_account'];
-  $username = $_POST['username'];
-  $password = $_POST['password']; // Password to be hashed
-  $confirm_password = $_POST['confirm_password']; // Repeated password
+    // Get form data
+    $full_name = $_POST['full_name'];
+    $cin = $_POST['cin'];
+    $email = $_POST['email'];
+    $phone_number = $_POST['phone_number'];
+    $city = $_POST['city'];
+    $address = $_POST['address'];
+    $bank_name = $_POST['bank_name'];
+    $bank_account = $_POST['bank_account'];
+    $username = $_POST['username'];
+    $password = $_POST['password']; // Password to be hashed
+    $confirm_password = $_POST['confirm_password']; // Repeated password
 
-  $status = 'INACTIVE';
+    $status = 'INACTIVE';
 
-  // Validate password and confirm password
-  if ($password !== $confirm_password) {
-    $message = '<div class="alert alert-danger">Les mots de passe ne correspondent pas.</div>';
-  } else {
-    // Check if the username already exists
-    $stmt = $conn->prepare("SELECT * FROM user_info WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result(); 
-
-    // If username already exists
-    if ($result->num_rows > 0) {
-      $message = '<div class="alert alert-danger">Le nom d\'utilisateur existe déjà.</div>';
+    // Validate password and confirm password
+    if ($password !== $confirm_password) {
+        $message = '<div class="alert alert-danger">Les mots de passe ne correspondent pas.</div>';
     } else {
-      // Hash the password for security
-      $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        // Check if the username already exists
+        $stmt = $conn->prepare("SELECT * FROM user_info WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-      // Prepare an SQL statement to prevent SQL injection
-      $stmt = $conn->prepare("INSERT INTO user_info (full_name, cin, email, phone_number, city, address, bank_name, bank_account, username, password, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        // If username already exists
+        if ($result->num_rows > 0) {
+            $message = '<div class="alert alert-danger">Le nom d\'utilisateur existe déjà.</div>';
+        } else {
+            // Hash the password for security
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-      // Bind parameters
-      $stmt->bind_param("sssssssssss", $full_name, $cin, $email, $phone_number, $city, $address, $bank_name, $bank_account, $username, $hashed_password, $status);
+            // Prepare an SQL statement to prevent SQL injection
+            $stmt = $conn->prepare("INSERT INTO user_info (full_name, cin, email, phone_number, city, address, bank_name, bank_account, username, password, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-      // Execute the statement
-      if ($stmt->execute()) {
+            // Bind parameters
+            $stmt->bind_param("sssssssssss", $full_name, $cin, $email, $phone_number, $city, $address, $bank_name, $bank_account, $username, $hashed_password, $status);
 
-        $alertScript = "
+            // Execute the statement
+            if ($stmt->execute()) {
+
+                $alertScript = "
         <script>
             Swal.fire({
               title: 'Vendeur ajouté', 
@@ -67,15 +68,15 @@ if (isset($_POST['submit'])) {
             });
         </script>
         ";
-      } else {
-        $message = '<div class="alert alert-danger">Erreur:</div> ' . $stmt->error;
-      }
-    }
+            } else {
+                $message = '<div class="alert alert-danger">Erreur:</div> ' . $stmt->error;
+            }
+        }
 
-    // Close the result and statement
-    $result->close();
-    $stmt->close();
-  }
+        // Close the result and statement
+        $result->close();
+        $stmt->close();
+    }
 }
 
 // Close the connection
@@ -141,7 +142,7 @@ $conn->close();
                             </div>
                             <div class="col-3">
                                 <div class="text-center mb-n5">
-                                    <img src="../../dist/images/breadcrumb/ChatBc.png" alt="" class="img-fluid mb-n4">
+                                    <img src="dist/images/breadcrumb/ChatBc.png" alt="" class="img-fluid mb-n4">
                                 </div>
                             </div>
                         </div>
@@ -164,151 +165,173 @@ $conn->close();
 
 
 
+                        
+
+
+
+
+
+
+
+
+
                     </ul>
                     <div class="card-body wizard-content">
-                        <?php echo $message ?>
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="pills-account" role="tabpanel"
+                                aria-labelledby="pills-account-tab" tabindex="1">
+                                <?php echo $message ?>
 
-                        <form action="" method="POST">
-                            <section>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="firstName1">Nom complet*</label>
-                                            <input type="text" class="form-control mt-2" id="firstName1"
-                                                name="full_name" placeholder="Entrer votre nom complet" required />
+                                <form action="" method="POST">
+                                    <section>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="firstName1">Nom complet*</label>
+                                                    <input type="text" class="form-control mt-2" id="firstName1"
+                                                        name="full_name" placeholder="Entrer votre nom complet"
+                                                        required />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="lastName1">CIN*</label>
+                                                    <input type="text" class="form-control mt-2" id="lastName1"
+                                                        name="cin" placeholder="Entrer votre C.I.N" required />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="lastName1">CIN*</label>
-                                            <input type="text" class="form-control mt-2" id="lastName1" name="cin"
-                                                placeholder="Entrer votre C.I.N" required />
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="emailAddress1">Adresse Email</label>
+                                                    <input type="email" class="form-control mt-2" id="emailAddress1"
+                                                        name="email" placeholder="Entrer votre adresse email" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="phoneNumber1">Numéro du téléphone*</label>
+                                                    <input type="tel" class="form-control mt-2" id="phoneNumber1"
+                                                        name="phone_number"
+                                                        placeholder="Entrer votre numéro de téléphone" required />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="emailAddress1">Adresse Email</label>
-                                            <input type="email" class="form-control mt-2" id="emailAddress1"
-                                                name="email" placeholder="Entrer votre adresse email" />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="phoneNumber1">Numéro du téléphone*</label>
-                                            <input type="tel" class="form-control mt-2" id="phoneNumber1"
-                                                name="phone_number" placeholder="Entrer votre numéro de téléphone"
-                                                required />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="emailAddress1">Ville*</label>
-                                            <select class="form-select mt-2" aria-label="Default select example"
-                                                name="city" required>
-                                                <option value="Casablanca">Casablanca</option>
-                                                <option value="Rabat">Rabat</option>
-                                                <option value="Fes">Fes</option>
-                                                <option value="Marrakesh">Marrakesh</option>
-                                                <option value="Tangier">Tangier</option>
-                                                <option value="Agadir">Agadir</option>
-                                                <option value="Meknes">Meknes</option>
-                                                <option value="Oujda">Oujda</option>
-                                                <option value="Kenitra">Kenitra</option>
-                                                <option value="Tetouan">Tetouan</option>
-                                                <option value="Safi">Safi</option>
-                                                <option value="Khouribga">Khouribga</option>
-                                                <option value="El Jadida">El Jadida</option>
-                                                <option value="Nador">Nador</option>
-                                                <option value="Beni Mellal">Beni Mellal</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="phoneNumber1">Adresse*</label>
-                                            <input type="text" class="form-control mt-2" id="phoneNumber1"
-                                                name="address" placeholder="Entrer votre adresse" required />
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </section>
-                            <section>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="jobTitle1">Nom du banque*</label>
-                                            <select class="form-select mt-2" aria-label="Default select example"
-                                                name="bank_name" required>
-                                                <option value="CIH Bank">CIH Bank</option>
-                                                <option value="BMCE Bank">BMCE Bank</option>
-                                                <option value="BMCI Bank">BMCI Bank</option>
-                                                <option value="ATTIJARIWAFA Bank">ATTIJARIWAFA Bank</option>
-                                                <option value="Banque populaire">Banque Populaire</option>
-                                                <option value="Barid Bank">Barid Bank</option>
-                                                <option value="Credit De Maroc">Credit De Maroc</option>
-                                                <option value="Other">Autre</option>
-
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="videoUrl1">Numéro de compte*</label>
-                                            <input type="text" class="form-control mt-2" id="videoUrl1"
-                                                name="bank_account" required
-                                                placeholder="Entrer le numéro de compte " />
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </section>
-                            <section>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="mb-3">
-                                            <label for="int1">Nom d'utilisateur*</label>
-                                            <input type="text" class="form-control mt-2" id="int1"
-                                                placeholder="Entrer un nom d'utilisateur" required name="username" />
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="emailAddress1">Ville*</label>
+                                                    <select class="form-select mt-2" aria-label="Default select example"
+                                                        name="city" required>
+                                                        <option value="Casablanca">Casablanca</option>
+                                                        <option value="Rabat">Rabat</option>
+                                                        <option value="Fes">Fes</option>
+                                                        <option value="Marrakesh">Marrakesh</option>
+                                                        <option value="Tangier">Tangier</option>
+                                                        <option value="Agadir">Agadir</option>
+                                                        <option value="Meknes">Meknes</option>
+                                                        <option value="Oujda">Oujda</option>
+                                                        <option value="Kenitra">Kenitra</option>
+                                                        <option value="Tetouan">Tetouan</option>
+                                                        <option value="Safi">Safi</option>
+                                                        <option value="Khouribga">Khouribga</option>
+                                                        <option value="El Jadida">El Jadida</option>
+                                                        <option value="Nador">Nador</option>
+                                                        <option value="Beni Mellal">Beni Mellal</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="phoneNumber1">Adresse*</label>
+                                                    <input type="text" class="form-control mt-2" id="phoneNumber1"
+                                                        name="address" placeholder="Entrer votre adresse" required />
+                                                </div>
+                                            </div>
                                         </div>
 
-                                    </div>
+                                    </section>
+                                    <section>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="jobTitle1">Nom du banque*</label>
+                                                    <select class="form-select mt-2" aria-label="Default select example"
+                                                        name="bank_name" required>
+                                                        <option value="CIH Bank">CIH Bank</option>
+                                                        <option value="BMCE Bank">BMCE Bank</option>
+                                                        <option value="BMCI Bank">BMCI Bank</option>
+                                                        <option value="ATTIJARIWAFA Bank">ATTIJARIWAFA Bank</option>
+                                                        <option value="Banque populaire">Banque Populaire</option>
+                                                        <option value="Barid Bank">Barid Bank</option>
+                                                        <option value="Credit De Maroc">Credit De Maroc</option>
+                                                        <option value="Other">Autre</option>
 
-                                </div>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="videoUrl1">Numéro de compte*</label>
+                                                    <input type="text" class="form-control mt-2" id="videoUrl1"
+                                                        name="bank_account" required
+                                                        placeholder="Entrer le numéro de compte " />
+                                                </div>
+                                            </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="int1">Mot de passe*</label>
-                                            <input type="password" class="form-control mt-2" id="int1"
-                                                placeholder="Entrer un mot de passe" required name="password" />
+                                        </div>
+                                    </section>
+                                    <section>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="mb-3">
+                                                    <label for="int1">Nom d'utilisateur*</label>
+                                                    <input type="text" class="form-control mt-2" id="int1"
+                                                        placeholder="Entrer un nom d'utilisateur" required
+                                                        name="username" />
+                                                </div>
+
+                                            </div>
+
                                         </div>
 
-                                    </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="int1">Mot de passe*</label>
+                                                    <input type="password" class="form-control mt-2" id="int1"
+                                                        placeholder="Entrer un mot de passe" required name="password" />
+                                                </div>
 
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="int1">Retaper mot de passe*</label>
-                                            <input type="password" class="form-control mt-2" id="int1"
-                                                placeholder="Entrer le mot de passe à nouveau " required
-                                                name="confirm_password" />
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="int1">Retaper mot de passe*</label>
+                                                    <input type="password" class="form-control mt-2" id="int1"
+                                                        placeholder="Entrer le mot de passe à nouveau " required
+                                                        name="confirm_password" />
+                                                </div>
+
+                                            </div>
+
                                         </div>
-
+                                    </section>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <button type="submit" name="submit" class="btn btn-primary mt-4">Ajouter
+                                            client</button>
                                     </div>
 
-                                </div>
-                            </section>
-                            <div class="d-flex align-items-center justify-content-between">
-                                <button type="submit" name="submit" class="btn btn-primary mt-4">Ajouter client</button>
+
+                                </form>
                             </div>
-
-
-                        </form>
+                        </div>
                     </div>
+
+                    
+
+
                 </div>
 
 
@@ -446,7 +469,8 @@ $conn->close();
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Chat Application</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">New messages arrived</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">New messages
+                                            arrived</span>
                                     </div>
                                 </a>
                             </li>
@@ -459,7 +483,8 @@ $conn->close();
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Invoice App</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">Get latest invoice</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">Get latest
+                                            invoice</span>
                                     </div>
                                 </a>
                             </li>
@@ -472,7 +497,8 @@ $conn->close();
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Contact Application</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">2 Unsaved Contacts</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">2 Unsaved
+                                            Contacts</span>
                                     </div>
                                 </a>
                             </li>
@@ -498,7 +524,8 @@ $conn->close();
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">User Profile</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">learn more information</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">learn more
+                                            information</span>
                                     </div>
                                 </a>
                             </li>
@@ -537,7 +564,8 @@ $conn->close();
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Notes Application</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">To-do and Daily tasks</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">To-do and Daily
+                                            tasks</span>
                                     </div>
                                 </a>
                             </li>
@@ -703,18 +731,12 @@ $conn->close();
     <script src="dist/js/sidebarmenu.js"></script>
     <script src="dist/js/custom.js"></script>
     <!-- current page js files -->
-    <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
-    <script src="dist/js/dashboard4.js"></script>
-    <script src="dist/js/apps/chat.js"></script>
-    <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
-    <script src="dist/js/widgets-charts.js"></script>
-    <script src="dist/libs/jquery-steps/build/jquery.steps.min.js"></script>
-    <script src="dist/libs/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="dist/js/forms/form-wizard.js"></script>
+
 
     <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="dist/js/forms/sweet-alert.init.js"></script>
     <?php echo $alertScript; ?>
+    <?php echo $alertScript2; ?>
 </body>
 
 </html>

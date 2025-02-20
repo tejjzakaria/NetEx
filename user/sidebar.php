@@ -76,7 +76,7 @@ $is_offers_page = $current_page === 'offers.php';
             <span class="d-flex">
               <i class="ti ti-package"></i>
             </span>
-            <span class="hide-menu">Colis</span>
+            <span class="hide-menu">Mes Colis</span>
           </a>
           
         </li>
@@ -93,8 +93,35 @@ $is_offers_page = $current_page === 'offers.php';
             <span>
               <i class="ti ti-ticket"></i>
             </span>
-            <span class="hide-menu">Stock</span>
+            <span class="hide-menu">Mon Stock</span>
           </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow" href="#" aria-expanded="false">
+            <span class="d-flex">
+              <i class="ti ti-brand-appgallery"></i>
+            </span>
+            <span class="hide-menu">Mes Boutiques</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="viewStores.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">List boutiques</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="addStore.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">Ajouter boutique</span>
+              </a>
+            </li>
+            
+          </ul>
         </li>
         <li class="sidebar-item">
           <a class="sidebar-link" href="viewSuppliers.php" aria-expanded="false">
@@ -117,7 +144,7 @@ $is_offers_page = $current_page === 'offers.php';
             <span class="d-flex">
               <i class="ti ti-star"></i>
             </span>
-            <span class="hide-menu">Leads</span>
+            <span class="hide-menu">Mes Leads</span>
           </a>
           <ul aria-expanded="false" class="collapse first-level">
             <li class="sidebar-item">
@@ -158,7 +185,7 @@ $is_offers_page = $current_page === 'offers.php';
             <span>
               <i class="ti ti-wallet"></i>
             </span>
-            <span class="hide-menu">Portfeuille</span>
+            <span class="hide-menu">Mon Portfeuille</span>
           </a>
         </li>
 
@@ -179,7 +206,7 @@ $is_offers_page = $current_page === 'offers.php';
             <span>
               <i class="ti ti-csv"></i>
             </span>
-            <span class="hide-menu">Feuilles de calcul G.S</span>
+            <span class="hide-menu">Mes Feuilles de calcul G.S</span>
           </a>
         </li>
 

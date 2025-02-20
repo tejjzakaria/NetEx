@@ -6,9 +6,12 @@ include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-$sql = "SELECT leads.*, user_info.full_name 
+$sql = "SELECT leads.*, user_info.full_name, user_stores.store_name 
         FROM leads 
-        JOIN user_info ON leads.userID = user_info.id ORDER BY id";
+        JOIN user_info ON leads.userID = user_info.id 
+        LEFT JOIN user_stores ON user_info.id = user_stores.userID 
+        ORDER BY leads.id";
+
 $result = mysqli_query($conn, $sql);
 $status = '';
 
@@ -43,8 +46,9 @@ while ($row = mysqli_fetch_assoc($result)) {
                     </div>
                 </div>
             </td>
-            <td>
+            <td style="max-width: 300px; word-wrap: break-word; white-space: normal;">
                 <span class="mb-1 badge font-medium bg-light-info text-info fs-2">' . $row['full_name'] . '</span>
+                <span class="mb-1 badge font-medium bg-light-info text-info fs-2">' . $row['store_name'] . '</span>
             </td>
             <td>
                 <div class="d-flex align-items-center">
@@ -95,7 +99,21 @@ while ($row = mysqli_fetch_assoc($result)) {
         </tr>';
 }
 
+$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE status='CONFIRMER'";
+$result = mysqli_query($conn, $sql);
+$confirmedParcels = mysqli_fetch_assoc($result)['confirmed'];
 
+$sql = "SELECT COUNT(*) AS new FROM leads WHERE status='NOUVEAU' OR status='NOUVEAU COLIS'";
+$result = mysqli_query($conn, $sql);
+$newParcels = mysqli_fetch_assoc($result)['new'];
+
+$sql = "SELECT COUNT(*) AS collected FROM leads WHERE status='RAMMASSER' OR status='rammassé'";
+$result = mysqli_query($conn, $sql);
+$collectedParcels = mysqli_fetch_assoc($result)['collected'];
+
+$sql = "SELECT COUNT(*) AS problems FROM leads WHERE status='RAPPEL' OR status='APPEL X4' OR status='BOITE VOCALE' OR status='PAS DE RÉPONSE' OR status='OCCUPÉ' OR status='MSJ WTSP'";
+$result = mysqli_query($conn, $sql);
+$problemsParcels = mysqli_fetch_assoc($result)['problems'];
 
 
 mysqli_close($conn);
@@ -169,9 +187,53 @@ mysqli_close($conn);
                         </div>
                     </div>
                 </div>
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-secondary mb-3" id="syncButton"><i class="fs-6 ti ti-refresh"
-                            style="margin-right: 6px;"></i>Synchroniser les données</button>
+
+                <div class="row">
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="" class="p-4 text-center bg-light-success card shadow-none rounded-2">
+
+                            <p class="fw-semibold text-success mb-1">Confirmés</p>
+                            <h4 class="fw-semibold text-success mb-0"><?php echo $confirmedParcels ?></h4>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="" class="p-4 text-center bg-light-primary card shadow-none rounded-2">
+
+                            <p class="fw-semibold text-primary mb-1">Nouveau</p>
+                            <h4 class="fw-semibold text-primary mb-0"><?php echo $newParcels ?></h4>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="" class="p-4 text-center bg-light-warning card shadow-none rounded-2">
+
+                            <p class="fw-semibold text-warning mb-1">Rammassé</p>
+                            <h4 class="fw-semibold text-warning mb-0"><?php echo $collectedParcels ?></h4>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="" class="p-4 text-center bg-light-danger card shadow-none rounded-2">
+
+                            <p class="fw-semibold text-danger mb-1">Attente de suivi</p>
+                            <h4 class="fw-semibold text-danger mb-0"><?php echo $problemsParcels ?></h4>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between">
+
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-secondary mb-3" id="syncButton" style="margin-right: 10px;"><i
+                                class="ti ti-refresh" style="margin-right: 6px;"></i>Synchroniser les
+                            données</button>
+
+                        <a href="../NETEX_IMPORT_TEMPLATE.csv" download><button class="btn btn-primary mb-3"><i
+                                    class="ti ti-download" style="margin-right: 6px;"></i>Modèle
+                                d'importation</button></a>
+                    </div>
+
+                    <a href="addLead.php"><button class="btn btn-outline-dark mb-3"><i
+                                    class="ti ti-plus" style="margin-right: 6px;"></i>Nouveau</button></a>
+
                 </div>
                 <div class="datatables">
                     <div class="row">
@@ -714,7 +776,7 @@ mysqli_close($conn);
     </script>
 
 
-<script>
+    <script>
         document.getElementById('syncButton').addEventListener('click', function () {
             // Show loading state
             Swal.fire({

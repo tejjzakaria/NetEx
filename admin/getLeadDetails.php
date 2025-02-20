@@ -4,6 +4,13 @@ include "../config.php";
 if (isset($_POST['id'])) {
     $id = intval($_POST['id']);
     $query = "SELECT * FROM leads WHERE id = $id";
+
+    //$query = "SELECT leads.*, user_info.full_name, user_stores.store_name 
+    //    FROM leads 
+    //    JOIN user_info ON leads.userID = user_info.id 
+    //    LEFT JOIN user_stores ON user_info.id = user_stores.userID WHERE id = $id
+    //    ORDER BY leads.id";
+
     $result = mysqli_query($conn, $query);
 
     if ($row = mysqli_fetch_assoc($result)) {

@@ -156,7 +156,21 @@ mysqli_close($conn);
 
 
 
+                <div class="d-flex align-items-center justify-content-between">
 
+                    <div class="d-flex align-items-center">
+                        <a href="" onclick="window.location.reload(true);"><button class="btn btn-secondary mb-3"
+                                style="margin-right: 10px;"><i class="ti ti-refresh"
+                                    style="margin-right: 6px;"></i>Actualiser les
+                                données</button></a>
+
+
+                    </div>
+
+                    <a href="viewSheets.php"><button class="btn btn-outline-dark mb-3"><i class="ti ti-plus"
+                                style="margin-right: 6px;"></i>Nouveau</button></a>
+
+                </div>
 
 
 
