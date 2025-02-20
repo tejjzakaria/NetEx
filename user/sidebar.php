@@ -165,6 +165,27 @@ $is_offers_page = $current_page === 'offers.php';
 
         <li class="nav-small-cap">
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+          <span class="hide-menu">API</span>
+        <li class="sidebar-item">
+          <a class="sidebar-link" href="docsApi.php" aria-expanded="false">
+            <span>
+              <i class="ti ti-api-app"></i>
+            </span>
+            <span class="hide-menu">Google Sheets API Doc</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" href="viewSpreadsheets.php" aria-expanded="false">
+            <span>
+              <i class="ti ti-csv"></i>
+            </span>
+            <span class="hide-menu">Feuilles de calcul G.S</span>
+          </a>
+        </li>
+
+
+        <li class="nav-small-cap">
+          <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
           <span class="hide-menu">Contact</span>
         </li>
         <!-- =================== -->

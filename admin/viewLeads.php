@@ -714,32 +714,55 @@ mysqli_close($conn);
     </script>
 
 
-    <script>
-        document.getElementById("syncButton").addEventListener("click", function () {
-            fetch('update_leads.php') // Adjust the path if needed
+<script>
+        document.getElementById('syncButton').addEventListener('click', function () {
+            // Show loading state
+            Swal.fire({
+                title: 'Synchronisation...',
+                text: 'Veuillez patienter pendant la synchronisation des données.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+
+            // Make an AJAX request to your PHP script
+            fetch('update_leads.php', {
+                method: 'POST', // Use POST if you're sending data, GET otherwise
+            })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.updated > 0 || data.inserted > 0) {
+                    // Hide loading spinner
+                    Swal.close();
+
+                    if (data.error) {
+                        // If there's an error
                         Swal.fire({
-                            title: "Succès!",
-                            text: `${data.inserted} nouveaux leads ajoutés, ${data.updated} leads synchronisés.`,
-                            icon: "success"
-                        }).then(() => {
-                            location.reload(); // Reload page after deletion
+                            title: 'Erreur!',
+                            text: data.error,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
                         });
                     } else {
+                        // If success, show success message
                         Swal.fire({
-                            title: "Aucun changement",
-                            text: "Aucune nouvelle donnée n’a été extraite de la feuille.",
-                            icon: "info"
+                            title: 'Succès!',
+                            text: `${data.updated} leads mis à jour et ${data.inserted} leads insérés.`,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            location.reload(); // Reload page after deletion
                         });
                     }
                 })
                 .catch(error => {
+                    // In case of an error with the fetch
+                    Swal.close();
                     Swal.fire({
-                        title: "Error",
-                        text: "Une erreur s'est produite lors de la synchronisation des données.",
-                        icon: "error"
+                        title: 'Erreur!',
+                        text: 'Quelque chose a mal tourné.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
                     });
                 });
         });

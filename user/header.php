@@ -10,7 +10,7 @@ $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $userID);
 $stmt->execute();
 $result = $stmt->get_result();
-
+ 
 
 $table_data44 = '';
 while ($notif = $result->fetch_assoc()) {
@@ -133,6 +133,17 @@ while ($notif = $result->fetch_assoc()) {
                                         <div class="w-75 d-inline-block v-middle ps-3">
                                             <h6 class="mb-1 bg-hover-primary fw-semibold"> Mon profil </h6>
                                             <span class="d-block text-dark">Paramètres du compte</span>
+                                        </div>
+                                    </a>
+
+                                    <a href="viewSheets.php" class="py-8 px-7 mt-8 d-flex align-items-center">
+                                        <span
+                                            class="d-flex align-items-center justify-content-center bg-light rounded-1 p-6">
+                                            <img src="dist/images/svgs/icon-tasks.svg" alt="" width="24" height="24">
+                                        </span>
+                                        <div class="w-75 d-inline-block v-middle ps-3">
+                                            <h6 class="mb-1 bg-hover-primary fw-semibold"> Mes feuilles de calcul </h6>
+                                            <span class="d-block text-dark">Paramètres Google Sheets</span>
                                         </div>
                                     </a>
 
