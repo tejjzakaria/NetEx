@@ -5,12 +5,14 @@ ini_set('display_errors', 1);
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
-
-$sql = "SELECT leads.*, user_info.full_name, user_stores.store_name 
+$sql = "SELECT leads.*, user_info.full_name, 
+        (SELECT store_name FROM user_stores WHERE user_stores.userID = user_info.id LIMIT 1) AS store_name
         FROM leads 
         JOIN user_info ON leads.userID = user_info.id 
-        LEFT JOIN user_stores ON user_info.id = user_stores.userID 
-        ORDER BY leads.id";
+        ORDER BY leads.id DESC";
+
+
+
 
 $result = mysqli_query($conn, $sql);
 $status = '';

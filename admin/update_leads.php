@@ -51,61 +51,46 @@ while ($row = $result->fetch_assoc()) {
     if (count($values) > 0) {
         foreach ($values as $index => $row) {
             // Skip header row or empty rows
-            if ($index === 0 || empty($row[0])) {
+            if ($index === 0 || empty($row[0])) { // Ensure tracking_id is not empty
+                continue;
+            }
+            $name = $row[0] ?? "";
+            $tracking_id = $row[1] ?? "";
+            
+            $phone_number = $row[2] ?? "";
+            $address = $row[3] ?? "";
+            $city = $row[4] ?? "";
+            $product = $row[5] ?? "";
+            $price = $row[6] ?? "";
+            $agent = $row[7] ?? "";
+            $comission = $row[8] ?? "";
+            $comments = $row[9] ?? "";
+            $status = $row[10] ?? "";
+
+            // Ensure tracking_id is valid before proceeding
+            if (empty($tracking_id)) {
                 continue;
             }
 
-            $id = $row[0] ?? null;
-            $tracking_id = $row[2] ?? "";
-            $name = $row[3] ?? "";
-            $phone_number = $row[4] ?? "";
-            $address = $row[5] ?? "";
-            $city = $row[6] ?? "";
-            $product = $row[7] ?? "";
-            $price = $row[8] ?? "";
-            $agent = $row[9] ?? "";
-            $comission = $row[10] ?? "";
-            $comments = $row[11] ?? "";
-            $status = $row[12] ?? "";
-
-            if (empty($id)) {
-                continue;
-            }
-
-            // Check if lead exists
-            $checkSql = "SELECT id FROM leads WHERE id = ?";
+            // Check if lead exists by tracking_id (not id)
+            $checkSql = "SELECT id FROM leads WHERE tracking_id = ?";
             $checkStmt = $conn->prepare($checkSql);
-            $checkStmt->bind_param("s", $id);
+            $checkStmt->bind_param("s", $tracking_id);
             $checkStmt->execute();
             $checkResult = $checkStmt->get_result();
             $checkStmt->close();
 
             if ($checkResult->num_rows > 0) {
-                // Correct the query for the number of bind parameters
-                $sql = "UPDATE leads SET name=?, tracking_id=?, phone_number=?, price=?, city=?, product=?, address=?, comments=?, agent=?, status=?, comission=? WHERE id=?";
+                // Update existing lead
+                $sql = "UPDATE leads SET name=?, phone_number=?, price=?, city=?, product=?, address=?, comments=?, agent=?, status=?, comission=? WHERE tracking_id=?";
                 $stmt = $conn->prepare($sql);
+                $stmt->bind_param("sssssssssss", $name, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $comission, $tracking_id);
 
-                // Correcting bind_param to match the placeholders (12 variables in total)
-                $stmt->bind_param("ssssssssssss", $name, $tracking_id, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $comission, $id);
-
-                // Execute the statement
                 if ($stmt->execute()) {
                     $updated++;
                 } else {
                     $errorOccurred = true;
-                    $errorMessage = "Failed to update lead with ID: $id";
-                }
-                $stmt->close();
-            } else {
-                // Insert new lead
-                $sql = "INSERT INTO leads (id, name, tracking_id, phone_number, price, city, product, address, comments, agent, status, comission) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("sssssssssssss", $id, $name, $tracking_id, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $comission);
-                if ($stmt->execute()) {
-                    $inserted++;
-                } else {
-                    $errorOccurred = true;
-                    $errorMessage = "Failed to insert lead with ID: $id";
+                    $errorMessage = "Failed to update lead with Tracking ID: $tracking_id";
                 }
                 $stmt->close();
             }

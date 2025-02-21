@@ -58,57 +58,59 @@ while ($row = $result->fetch_assoc()) {
     if (count($values) > 0) {
         foreach ($values as $index => $row) {
             // Skip header row or empty rows
-            if ($index === 0 || empty($row[0])) {
+            if ($index === 0 || empty($row[2])) { // Ensure tracking_id is not empty
                 continue;
             }
 
-            $id = $row[0] ?? null;
-            $tracking_id = $row[2] ?? "";
-            $name = $row[3] ?? "";
-            $phone_number = $row[4] ?? "";
-            $address = $row[5] ?? "";
-            $city = $row[6] ?? "";
-            $product = $row[7] ?? "";
-            $price = $row[8] ?? "";
-            $agent = $row[9] ?? "";
-            $comission = $row[10] ?? "";
-            $comments = $row[11] ?? "";
-            $status = $row[12] ?? "";
+            $name = $row[0] ?? "";
+            $tracking_id = $row[1] ?? "";
+            
+            $phone_number = $row[2] ?? "";
+            $address = $row[3] ?? "";
+            $city = $row[4] ?? "";
+            $product = $row[5] ?? "";
+            $price = $row[6] ?? "";
+            $agent = $row[7] ?? "";
+            $comission = $row[8] ?? "";
+            $comments = $row[9] ?? "";
+            $status = $row[10] ?? "";
 
-            if (empty($id)) {
+            // Ensure tracking_id is valid before proceeding
+            if (empty($tracking_id)) {
                 continue;
             }
 
-            // Check if lead exists
-            $checkSql = "SELECT id FROM leads WHERE id = ?";
+            // Check if lead exists by tracking_id
+            $checkSql = "SELECT id FROM leads WHERE tracking_id = ?";
             $checkStmt = $conn->prepare($checkSql);
-            $checkStmt->bind_param("s", $id);
+            $checkStmt->bind_param("s", $tracking_id);
             $checkStmt->execute();
             $checkResult = $checkStmt->get_result();
             $checkStmt->close();
 
             if ($checkResult->num_rows > 0) {
                 // Update lead
-                $sql = "UPDATE leads SET userID=?, name=?, tracking_id=?, phone_number=?, price=?, city=?, product=?, address=?, comments=?, agent=?, status=?, comission=? WHERE id=?";
+                $sql = "UPDATE leads SET userID=?, name=?, phone_number=?, price=?, city=?, product=?, address=?, comments=?, agent=?, status=?, comission=? WHERE tracking_id=?";
                 $stmt = $conn->prepare($sql);
-                $stmt->bind_param("sssssssssssss", $userID, $name, $tracking_id, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $comission, $id);
+                $stmt->bind_param("ssssssssssss", $userID, $name, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $comission, $tracking_id);
                 if ($stmt->execute()) {
                     $updated++;
                 } else {
                     $errorOccurred = true;
-                    $errorMessage = "Failed to update lead with ID: $id";
+                    $errorMessage = "Failed to update lead with Tracking ID: $tracking_id";
                 }
                 $stmt->close();
             } else {
                 // Insert new lead
-                $sql = "INSERT INTO leads (id, userID, name, tracking_id, phone_number, price, city, product, address, comments, agent, status, comission) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $sql = "INSERT INTO leads (userID, name, tracking_id, phone_number, price, city, product, address, comments, agent, status, comission) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 $stmt = $conn->prepare($sql);
-                $stmt->bind_param("sssssssssssss", $id, $userID, $name, $tracking_id, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $comission);
+                $stmt->bind_param("ssssssssssss", $userID, $name, $tracking_id, $phone_number, $price, $city, $product, $address, $comments, $agent, $status, $comission);
                 if ($stmt->execute()) {
                     $inserted++;
                 } else {
                     $errorOccurred = true;
-                    $errorMessage = "Failed to insert lead with ID: $id";
+                    $errorMessage = "Failed to insert lead with Tracking ID: $tracking_id";
                 }
                 $stmt->close();
             }
