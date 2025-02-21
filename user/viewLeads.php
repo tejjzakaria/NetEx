@@ -48,9 +48,9 @@ while ($row = mysqli_fetch_assoc($result)) {
             <tr>
             <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
                 <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-0" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['tracking_id'] . '</h6>
+                    <div class="d-flex align-items-center" >
+                        <div class="ms-0">
+                            <h6 class="fs-4 fw-normal mb-0" style="max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['tracking_id'] . '</h6>
                             <span class="fw-normal">' . $row['created_at'] . '</span>
                         </div>
                     </div>
