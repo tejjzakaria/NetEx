@@ -6,7 +6,12 @@ include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-$sql = "SELECT * FROM leads WHERE userID='$userID'";
+$sql = "SELECT leads.*, user_info.full_name, user_stores.store_name 
+        FROM leads 
+        JOIN user_info ON leads.userID = user_info.id 
+        LEFT JOIN user_stores ON user_info.id = user_stores.userID 
+        WHERE leads.userID = '$userID'
+        ORDER BY leads.id";
 $result = mysqli_query($conn, $sql);
 $status = '';
 
@@ -87,7 +92,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                         class="mb-1 badge font-medium bg-light-secondary text-secondary fs-2">' . $row['comission'] . ' Dhs</span>
                 </td>
                 <td>
-                    <p class="mb-0 fw-normal" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['comments'] . '</p>
+                    <p class="btn btn-outline-primary fw-semibold fs-2" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['store_name'] . '</p>
                 </td>
                 <td>
                     <div class="dropdown dropstart">
@@ -301,7 +306,7 @@ mysqli_close($conn);
                                                         <h6 class="fs-4 fw-semibold mb-0">Commission</h6>
                                                     </th>
                                                     <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Commentaires</h6>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Boutique</h6>
                                                     </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">Actions</h6>

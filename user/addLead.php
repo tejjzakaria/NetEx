@@ -82,6 +82,9 @@ if (isset($_POST['submit'])) {
 $sql_ = "SELECT product_name FROM stock_requests WHERE userID='$userID' and status='EN STOCK'"; 
 $productData = mysqli_query($conn, $sql_);
 
+$sql_ = "SELECT id, store_name FROM user_stores WHERE userID='$userID'"; 
+$storeData = mysqli_query($conn, $sql_);
+
 mysqli_close($conn);
 
 
@@ -180,6 +183,7 @@ mysqli_close($conn);
                                         <label for="" class="form-label fw-semibold">Ville</label>
                                         <select class="form-select" aria-label="Default select example" name="city"
                                             required>
+                                            <option value="" disabled selected>Sélectionnez une option</option>
                                             <option value="Casablanca">Casablanca</option>
                                             <option value="Rabat">Rabat</option>
                                             <option value="Fes">Fes</option>
@@ -195,6 +199,24 @@ mysqli_close($conn);
                                             <option value="El Jadida">El Jadida</option>
                                             <option value="Nador">Nador</option>
                                             <option value="Beni Mellal">Beni Mellal</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="" class="form-label fw-semibold">Boutique</label>
+                                        <select class="form-select" aria-label="Default select example" name="store"
+                                            required>
+                                            <option value="" disabled selected>Sélectionnez une option</option>
+                                            <?php
+                                            // Loop through the businesses and create options
+                                            while ($row = mysqli_fetch_assoc($storeData)) {
+                                                $storeID = htmlspecialchars($row['id']);
+
+                                                $store_name = htmlspecialchars($row['store_name']); // Sanitize output
+                                                echo "<option value='$storeID'>$store_name</option>";
+                                            }
+                                            ?>
+
                                         </select>
                                     </div>
 
@@ -226,6 +248,7 @@ mysqli_close($conn);
                                         <label for="" class="form-label fw-semibold">Produit</label>
                                         <select class="form-select" aria-label="Default select example" name="product"
                                             required>
+                                            <option value="" disabled selected>Sélectionnez une option</option>
                                             <?php
                                             // Loop through the businesses and create options
                                             while ($row = mysqli_fetch_assoc($productData)) {
@@ -236,6 +259,7 @@ mysqli_close($conn);
 
                                         </select>
                                     </div>
+                                    
                                     <div class="mb-4">
                                         <label for="exampleInputPassword1"
                                             class="form-label fw-semibold">Commentaires</label>
