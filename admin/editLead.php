@@ -12,23 +12,29 @@ $userDataP = mysqli_query($conn, $sql_);
 $sql_ = "SELECT id, full_name FROM agent_info";
 $agentDataP = mysqli_query($conn, $sql_);
 
+$sql_ = "SELECT id, statut FROM statuses WHERE visibility='ACTIVE'";
+$statusesDataP = mysqli_query($conn, $sql_);
 
+$sql_ = "SELECT city FROM cities WHERE status='ACTIVE'";
+$citiesDataP = mysqli_query($conn, $sql_);
 
 $message = "";
 $alertScript = ''; // This will store the SweetAlert script
 
-$id = $_GET['id']; 
+$id = $_GET['id'];
 $sql = "SELECT * FROM leads WHERE id='$id'";
 $result = mysqli_query($conn, $sql);
 $leadData = mysqli_fetch_assoc($result);
 
 $selectedUserID = $leadData['userID'];  // Retrieve this from your parcel data
-$selectedAgentID = $leadData['agent'];  // Retrieve this from your parcel data
+$selectedAgent = $leadData['agent'];  // Retrieve this from your parcel data
+$selectedStatus = $leadData['status'];  // Retrieve this from your parcel data
+$selectedCity = $leadData['city'];  // Retrieve this from your parcel data
 
 if (isset($_POST['submit'])) {
     // Get form data
     $id = $_POST['id'];
-    $userID = $_POST['userID'];  
+    $userID = $_POST['userID'];
     $name = $_POST['name'];
     $tracking_id = $_POST['tracking_id'];
     $phone_number = $_POST['phone_number'];
@@ -44,7 +50,7 @@ if (isset($_POST['submit'])) {
     $sql = "UPDATE leads SET userID='$userID', name='$name', tracking_id='$tracking_id',
 phone_number='$phone_number', price='$price', city='$city', product='$product', 
 address='$address', comments='$comments', agent='$agent', status='$status' WHERE id='$id'";
- 
+
     if (mysqli_query($conn, $sql)) {
         // Redirect to parcels page if successful
         $alertScript = "
@@ -152,38 +158,36 @@ mysqli_close($conn);
 
                             <div class="row">
                                 <div class="col-lg-6">
-                                <input type="hidden" name="id" value="<?php echo $leadData['id']; ?>">
+                                    <input type="hidden" name="id" value="<?php echo $leadData['id']; ?>">
                                     <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Nom</label>
+                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Nom</label>
                                         <input type="text" class="form-control" id="exampleInputtext"
-                                            placeholder="John Doe" name="name" value="<?php echo $leadData['name'];?>" required>
+                                            placeholder="John Doe" name="name" value="<?php echo $leadData['name']; ?>"
+                                            required>
                                     </div>
                                     <div class="mb-4">
                                         <label for="exampleInputPassword1"
                                             class="form-label fw-semibold">Téléphone</label>
                                         <input type="text" class="form-control" id="exampleInputtext"
-                                            placeholder="06 00 00 00 00" name="phone_number" value="<?php echo $leadData['phone_number'];?>"required>
+                                            placeholder="06 00 00 00 00" name="phone_number"
+                                            value="<?php echo $leadData['phone_number']; ?>" required>
                                     </div>
                                     <div class="mb-4">
                                         <label for="" class="form-label fw-semibold">Ville</label>
                                         <select class="form-select" aria-label="Default select example" name="city"
                                             required>
-                                            <option value="Casablanca" <?php echo ($leadData['city'] == 'Casablanca') ? 'selected' : ''; ?>>Casablanca</option>
-                                            <option value="Rabat" <?php echo ($leadData['city'] == 'Rabat') ? 'selected' : ''; ?>>Rabat</option>
-                                            <option value="Fes" <?php echo ($leadData['city'] == 'Fes') ? 'selected' : ''; ?>>Fes</option>
-                                            <option value="Marrakesh" <?php echo ($leadData['city'] == 'Marrakesh') ? 'selected' : ''; ?>>Marrakesh</option>
-                                            <option value="Tangier" <?php echo ($leadData['city'] == 'Tangier') ? 'selected' : ''; ?>>Tangier</option>
-                                            <option value="Agadir" <?php echo ($leadData['city'] == 'Agadir') ? 'selected' : ''; ?>>Agadir</option>
-                                            <option value="Meknes" <?php echo ($leadData['city'] == 'Meknes') ? 'selected' : ''; ?>>Meknes</option>
-                                            <option value="Oujda" <?php echo ($leadData['city'] == 'Oujda') ? 'selected' : ''; ?>>Oujda</option>
-                                            <option value="Kenitra" <?php echo ($leadData['city'] == 'Kenitra') ? 'selected' : ''; ?>>Kenitra</option>
-                                            <option value="Tetouan" <?php echo ($leadData['city'] == 'Tetouan') ? 'selected' : ''; ?>>Tetouan</option>
-                                            <option value="Safi" <?php echo ($leadData['city'] == 'Safi') ? 'selected' : ''; ?>>Safi</option>
-                                            <option value="Khouribga" <?php echo ($leadData['city'] == 'Khouribga') ? 'selected' : ''; ?>>Khouribga</option>
-                                            <option value="El Jadida" <?php echo ($leadData['city'] == 'El Jadida') ? 'selected' : ''; ?>>El Jadida</option>
-                                            <option value="Nador" <?php echo ($leadData['city'] == 'Nador') ? 'selected' : ''; ?>>Nador</option>
-                                            <option value="Beni Mellal" <?php echo ($leadData['city'] == 'Beni Mellal') ? 'selected' : ''; ?>>Beni Mellal</option>
+                                            <?php
+                                            // Loop through the users and create options
+                                            while ($row = mysqli_fetch_assoc($citiesDataP)) {
+                                                $city = htmlspecialchars($row['city']);  // Optional, display full_name
+                                            
+                                                // Check if this user is the one associated with the parcel
+                                                $selected = ($city == $selectedCity) ? 'selected' : '';
+
+                                                // Output the option with the selected attribute if it's the current user
+                                                echo "<option value='$city' $selected>$city</option>";
+                                            }
+                                            ?>
                                         </select>
                                     </div>
 
@@ -191,7 +195,8 @@ mysqli_close($conn);
                                         <label for="exampleInputPassword1"
                                             class="form-label fw-semibold">Adresse</label>
                                         <textarea type="text" class="form-control" id="exampleInputtext"
-                                            placeholder="Rue, code postal" name="address" required><?php echo $leadData['address'];?></textarea>
+                                            placeholder="Rue, code postal" name="address"
+                                            required><?php echo $leadData['address']; ?></textarea>
                                     </div>
 
                                     <div class="mb-4">
@@ -218,28 +223,19 @@ mysqli_close($conn);
                                         <label for="exampleInputPassword1" class="form-label fw-semibold">Status</label>
                                         <select class="form-select" aria-label="Default select example" name="status"
                                             required>
-                                            <option value="Confirmer" <?php echo ($leadData['status'] == 'Confirmer') ? 'selected' : ''; ?>>Confirmer</option>
-                                            <option value="Confirmer Relance" <?php echo ($leadData['status'] == 'Confirmer Relance') ? 'selected' : ''; ?>>Confirmer Relance</option>
-                                            <option value="Rappel" <?php echo ($leadData['status'] == 'Rappel') ? 'selected' : ''; ?>>Rappel</option>
-                                            <option value="Appel X4" <?php echo ($leadData['status'] == 'Appel X4') ? 'selected' : ''; ?>>Appel X4</option>
-                                            <option value="Boite Vocale" <?php echo ($leadData['status'] == 'Boite Vocale') ? 'selected' : ''; ?>>Boite Vocale</option>
-                                            <option value="Pas de réponse" <?php echo ($leadData['status'] == 'Pas de réponse') ? 'selected' : ''; ?>>Pas de réponse</option>
-                                            <option value="Occupé" <?php echo ($leadData['status'] == 'Occupé') ? 'selected' : ''; ?>>Occupé</option>
-                                            <option value="Annulé" <?php echo ($leadData['status'] == 'Annulé') ? 'selected' : ''; ?>>Annulé</option>
-                                            <option value="Msj Wtsp" <?php echo ($leadData['status'] == 'Msj Wtsp') ? 'selected' : ''; ?>>Msj Wtsp</option>
+                                            <?php
+                                            while ($row = mysqli_fetch_assoc($statusesDataP)) {
+                                                $statut = htmlspecialchars($row['statut']);
+                                                $selected = ($statut == $selectedStatus) ? 'selected' : '';
+                                                echo "<option value='$statut' $selected>$statut</option>";
+                                            }
+                                            ?>
 
-                                            <option value="Nouveau colis" <?php echo ($leadData['status'] == 'Nouveau colis') ? 'selected' : ''; ?>>Nouveau colis</option>
-                                            <option value="Rammasser" <?php echo ($leadData['status'] == 'Rammasser') ? 'selected' : ''; ?>>Rammasser</option>
-                                            <option value="Nouveau colis: reporté" <?php echo ($leadData['status'] == 'Nouveau colis: reporté') ? 'selected' : ''; ?>>Nouveau colis: reporté</option>
-                                            <option value="Nouveau colis: change" <?php echo ($leadData['status'] == 'Nouveau colis: change') ? 'selected' : ''; ?>>Nouveau colis: change</option>
-
-
-
-                                        </select> 
+                                        </select>
                                     </div>
-                                    
 
-                                    
+
+
 
                                 </div>
                                 <div class="col-lg-6">
@@ -247,13 +243,13 @@ mysqli_close($conn);
                                         <label for="exampleInputPassword1" class="form-label fw-semibold">
                                             ID</label>
                                         <input type="text" class="form-control" id="exampleInputtext" readonly
-                                            value="<?php echo $leadData['tracking_id'];?>" name="tracking_id" required>
+                                            value="<?php echo $leadData['tracking_id']; ?>" name="tracking_id" required>
                                     </div>
                                     <div class="mb-4">
-                                        <label for="exampleInputPassword1"
-                                            class="form-label fw-semibold">Prix</label>
+                                        <label for="exampleInputPassword1" class="form-label fw-semibold">Prix</label>
                                         <input type="number" class="form-control" id="exampleInputtext"
-                                            placeholder="299" name="price" value="<?php echo $leadData['price'];?>"required>
+                                            placeholder="299" name="price" value="<?php echo $leadData['price']; ?>"
+                                            required>
                                     </div>
                                     <div class="mb-4">
                                         <label for="" class="form-label fw-semibold">Produit</label>
@@ -275,22 +271,22 @@ mysqli_close($conn);
                                         <label for="exampleInputPassword1"
                                             class="form-label fw-semibold">Commentaires</label>
                                         <textarea type="text" name="comments" class="form-control" id="exampleInputtext"
-                                            placeholder="Ajouter info ici" required><?php echo $leadData['comments'];?></textarea>
+                                            placeholder="Ajouter info ici"
+                                            required><?php echo $leadData['comments']; ?></textarea>
                                     </div>
 
                                     <div class="mb-4">
                                         <label for="exampleInputPassword1" class="form-label fw-semibold">Agent</label>
                                         <select class="form-select" aria-label="Default select example" name="agentID"
                                             required>
-                                            <option value="pas encore attributé">pas encore attributé</option>
+                                            <option value="pas encore attribué">pas encore attribué</option>
                                             <?php
                                             // Loop through the users and create options
                                             while ($row = mysqli_fetch_assoc($agentDataP)) {
-                                                $agentID = htmlspecialchars($row['id']);  // Sanitize output
                                                 $full_name = htmlspecialchars($row['full_name']);  // Optional, display full_name
                                             
                                                 // Check if this user is the one associated with the parcel
-                                                $selected = ($agentID == $selectedAgentID) ? 'selected' : '';
+                                                $selected = ($full_name == $selectedAgent) ? 'selected' : '';
 
                                                 // Output the option with the selected attribute if it's the current user
                                                 echo "<option value='$full_name' $selected>$full_name</option>";
@@ -298,12 +294,12 @@ mysqli_close($conn);
                                             ?>
                                         </select>
                                     </div>
-                                    
-                                    
 
-                                    
 
-                                    
+
+
+
+
 
                                 </div>
                             </div>
@@ -313,7 +309,8 @@ mysqli_close($conn);
 
                                 <div class="col-12">
                                     <div class="d-flex align-items-center gap-3">
-                                        <button type="submit" name="submit" class="btn btn-primary">Modifier lead</button>
+                                        <button type="submit" name="submit" class="btn btn-primary">Modifier
+                                            lead</button>
                                     </div>
                                 </div>
                             </div>
@@ -722,5 +719,5 @@ mysqli_close($conn);
     <script src="dist/js/forms/sweet-alert.init.js"></script>
     <?php echo $alertScript; ?>
 </body>
- 
+
 </html>

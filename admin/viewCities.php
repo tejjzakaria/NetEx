@@ -1,170 +1,77 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-// Connect to the database
+
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-$sql = "SELECT * FROM leads WHERE agent = '$agentName' OR agent = 'pas encore attribué' OR agent = 'pas encore attributé'";
+$sql = "SELECT * FROM cities";
 $result = mysqli_query($conn, $sql);
-$status = '';
 
 $table_data = '';
 
-
-while ($row = mysqli_fetch_assoc($result)) {
-
-
-
-    if ($row['status'] == 'CONFIRMER' or $row['status'] == 'RAMMASSER') {
-        $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'RAPPEL') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'BOITE VOCALE') {
-        $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'PAS DE RÉPONSE') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'OCCUPÉ') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'ANNULÉ') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'MESSAGE WHATSAPP') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else {
-        $status_class = "badge bg-primary fw-semibold fs-2";
+while ($row = $result->fetch_assoc()) {
+    if ($row['status'] == 'ACTIVE') {
+        $status_class = "badge bg-success fw-semibold fs-2 mt-2";
+        $actions = '
+            <a class="mt-2 btn mb-1 btn-warning btn-circle btn-sm d-inline-flex align-items-center justify-content-center toggle-status" 
+               data-id="' . $row['id'] . '" data-status="INACTIVE">
+                <i class="fs-5 ti ti-x"></i>
+            </a>';
+    } else if ($row['status'] == 'INACTIVE') {
+        $status_class = "badge bg-danger fw-semibold fs-2 mt-2";
+        $actions = '
+            <a class="mt-2 btn mb-1 btn-success btn-circle btn-sm d-inline-flex align-items-center justify-content-center toggle-status" 
+               data-id="' . $row['id'] . '" data-status="ACTIVE">
+                <i class="fs-5 ti ti-check"></i>
+            </a>';
     }
 
 
-    // Check if the agent is 'pas encore attribué'
-    $assign_button = '';
-    if ($row['agent'] == 'pas encore attribué' or $row['agent'] == 'pas encore attributé') {
-        $assign_button = '
-            <li>
-                <a class="dropdown-item d-flex align-items-center gap-3" href="assignLead.php?id=' . $row['id'] . '">
-                    <i class="fs-4 ti ti-user-plus"></i>Assignez-vous
-                </a>
-            </li>';
-    }
-
-    $modify_button = '';
-    if ($row['agent'] != 'pas encore attribué') {
-        $modify_button = '
-            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-3" href="editLead.php?id=' . $row['id'] . '"><i
-                                        class="fs-4 ti ti-edit"></i>Modifer info</a>
-                            </li>';
-    }
-
-
-
-    $table_data = '
-            <tr>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-0" style="max-width: 300px; word-wrap: break-word; white-space: normal;">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['tracking_id'] . '</h6>
-                            <span class="fw-normal">' . $row['created_at'] . '</span>
-                        </div>
+    // Build the table data
+    $table_data .= '
+        <tr>
+        <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="ms-0">
+                        <h6 class="fs-4 mb-0">' . $row['id'] . '</h6>
+                        <span class="fw-normal">' . $row['created_at'] . '</span>
                     </div>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['name'] . '</h6>
-                            <span class="fw-normal">' . $row['phone_number'] . '</span>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['address'] . ',</h6>
-                            <span class="fw-normal" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['city'] . '</span>
-                        </div>
-                    </div>
-                </td> 
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['product'] . '</h6>
-                            <span class="fw-normal">' . $row['price'] . ' Dhs</span>
-                            
-                        </div>
-                    </div>
-                </td>
-
-                <td>
-                    <span
-                        class="badge bg-secondary fw-semibold fs-2" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['agent'] . '</span>
-                </td>
-                
-                
-                
-                <td>
-                    <span
-                        class="' . $status_class . '" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['status'] . '</span>
-                </td>
-                
-                <td>
-                    <p class="mb-0 fw-normal" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['comments'] . '</p>
-                </td>
-                <td>
-                    <div class="dropdown dropstart">
-                        <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            <i class="ti ti-dots fs-5"></i>
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButto"
-                        <li>
-                                <a class="dropdown-item d-flex align-items-center gap-3" href="#" onclick="viewLead(' . $row['id'] . ')"><i
-                                        class="fs-4 ti ti-eye"></i>Details</a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-3" href="#" onclick="viewFollowUp(' . $row['id'] . ')"><i
-                                        class="fs-4 ti ti-info-square-rounded"></i>Suivi</a>
-                            </li>
-                            ' . $modify_button . '
-                            ' . $assign_button . '
-                        </ul>
-                    </div>
-                </td>
-                
-
-                
-                
-                </tr>
-    
-    ' . $table_data;
-
+                </div>
+            </td>
+            <td>
+                <span class="btn btn-outline-secondary">' . $row['city'] . '</span>
+            </td>
+            
+            <td>
+                <span class="' . $status_class . '">' . $row['status'] . '</span>
+            </td>
+            <td>
+                <div class="button-group">
+                    ' . $actions . '
+                </div>
+            </td>
+        </tr>
+    ';
 }
 
-$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE status='CONFIRMER' AND agent = '$agentName'";
-$result = mysqli_query($conn, $sql);
-$confirmedParcels = mysqli_fetch_assoc($result)['confirmed'];
-
-$sql = "SELECT COUNT(*) AS new FROM leads WHERE (status='NOUVEAU' OR status='NOUVEAU COLIS') AND agent = '$agentName'";
-$result = mysqli_query($conn, $sql);
-$newParcels = mysqli_fetch_assoc($result)['new'];
-
-$sql = "SELECT COUNT(*) AS collected FROM leads WHERE (status='RAMMASSER' OR status='rammassé') AND agent = '$agentName'";
-$result = mysqli_query($conn, $sql);
-$collectedParcels = mysqli_fetch_assoc($result)['collected'];
-
-$sql = "SELECT COUNT(*) AS problems FROM leads WHERE (status='RAPPEL' OR status='APPEL X4' OR status='BOITE VOCALE' OR status='PAS DE RÉPONSE' OR status='OCCUPÉ' OR status='MSJ WTSP') AND agent = '$agentName'";
-$result = mysqli_query($conn, $sql);
-$problemsParcels = mysqli_fetch_assoc($result)['problems'];
-
+// Close the connection
 mysqli_close($conn);
-
 ?>
+
+
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <!--  Title -->
-    <title>Leads</title>
+    <title>Admin - Statuts</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -179,7 +86,6 @@ mysqli_close($conn);
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
     <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
-
 </head>
 
 <body>
@@ -208,11 +114,11 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Leads</h4>
+                                <h4 class="fw-semibold mb-8">Statuts</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="viewLeads.php">List Leads</a>
+                                            <a class="text-muted " href="">List Statuts</a>
                                         </li>
                                         <li class="breadcrumb-item" aria-current="page">Voir Tous</li>
                                     </ol>
@@ -226,75 +132,57 @@ mysqli_close($conn);
                         </div>
                     </div>
                 </div>
+                <div class="d-flex align-items-center justify-content-between">
 
-                <div class="row">
-                    <div class="col-sm-6 col-xl-3">
-                        <a href="" class="p-4 text-center bg-light-success card shadow-none rounded-2">
+                    <div class="d-flex align-items-center">
+                        <a href="" onclick="window.location.reload(true);"><button class="btn btn-secondary mb-3"
+                                style="margin-right: 10px;"><i class="ti ti-refresh"
+                                    style="margin-right: 6px;"></i>Actualiser les
+                                données</button></a>
 
-                            <p class="fw-semibold text-success mb-1">Confirmés</p>
-                            <h4 class="fw-semibold text-success mb-0"><?php echo $confirmedParcels ?></h4>
-                        </a>
+
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <a href="" class="p-4 text-center bg-light-primary card shadow-none rounded-2">
 
-                            <p class="fw-semibold text-primary mb-1">Nouveau</p>
-                            <h4 class="fw-semibold text-primary mb-0"><?php echo $newParcels ?></h4>
-                        </a>
-                    </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <a href="" class="p-4 text-center bg-light-warning card shadow-none rounded-2">
+                    <a href="addCity.php"><button class="btn btn-outline-dark mb-3"><i class="ti ti-plus"
+                                style="margin-right: 6px;"></i>Nouveau</button></a>
 
-                            <p class="fw-semibold text-warning mb-1">Rammassé</p>
-                            <h4 class="fw-semibold text-warning mb-0"><?php echo $collectedParcels ?></h4>
-                        </a>
-                    </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <a href="" class="p-4 text-center bg-light-danger card shadow-none rounded-2">
-
-                            <p class="fw-semibold text-danger mb-1">Attente de suivi</p>
-                            <h4 class="fw-semibold text-danger mb-0"><?php echo $problemsParcels ?></h4>
-                        </a>
-                    </div>
                 </div>
 
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-secondary mb-3" id="syncButton"><i class="ti ti-refresh"
-                            style="margin-right: 6px;"></i>Synchroniser les données</button>
-                </div>
+
+
                 <div class="datatables">
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <button id="process-selected" class="btn btn-danger mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer la sélection</button>
+                                        <button id="activate-selected" class="btn btn-success mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-check" style="margin-right: 6px;"></i>Activer la sélection</button>
+                                        <button id="deactivate-selected" class="btn btn-warning mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-x" style="margin-right: 6px;"></i>Désactiver la sélection</button>
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table border text-nowrap customize-table mb-0 align-middle"
-                                            id="leads_table">
+                                            id="notifications_table">
                                             <thead class="text-dark fs-4">
                                                 <tr>
+                                                    <th>
+                                                        <input type="checkbox" id="select-all"
+                                                            class="form-check-input contact-chkbox primary">
+                                                    </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">ID</h6>
                                                     </th>
                                                     <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Nom</h6>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Ville</h6>
                                                     </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Adresse</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Produit</h6>
-                                                    </th>
-
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Agent</h6>
-                                                    </th>
-
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">Status</h6>
-                                                    </th>
-
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Commentaires</h6>
                                                     </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">Actions</h6>
@@ -302,28 +190,20 @@ mysqli_close($conn);
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php echo $table_data ?>
-                                            </tbody>
+                                                <?php echo $table_data; ?>
 
-                                            <tfoot>
-                                                <!-- start row -->
-                                                <tr>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                </tr>
-                                                <!-- end row -->
-                                            </tfoot>
+
+
+                                            </tbody>
                                         </table>
+
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
 
 
 
@@ -718,22 +598,20 @@ mysqli_close($conn);
     <!-- current page js files -->
     <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
     <script src="dist/js/dashboard4.js"></script>
-    <script src="dist/js/apps/chat.js"></script>
-    <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
-    <script src="dist/js/widgets-charts.js"></script>
+    <script src="../../dist/js/apps/chat.js"></script>
+    <script src="../../dist/libs/apexcharts/dist/apexcharts.min.js"></script>
+    <script src="../../dist/js/widgets-charts.js"></script>
+
 
     <script src="dist/libs/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="dist/js/datatable/datatable-api.init.js"></script>
+    <script src="dist/js/datatable/datatable-basic.init.js"></script>
+
+    <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
+    <script src="dist/js/forms/sweet-alert.init.js"></script>
 
     <script>
         $(document).ready(function () {
-            var table = $('#leads_table').DataTable({
-                "paging": true,
-                "scrollX": true,
-                "scrollY": true,
-                "searching": true,
-                "ordering": true,
-                "pageLength": 10,
+            $('#notifications_table').DataTable({
                 "language": {
                     "lengthMenu": "Afficher _MENU_ entrées",
                     "zeroRecords": "Aucun enregistrement trouvé",
@@ -749,175 +627,195 @@ mysqli_close($conn);
                     }
                 }
             });
+        });
 
-            // Specify the columns where you want to add the select input (0-based index)
-            var targetColumns = [4, 5]; // 2nd, 5th, and 6th columns
+    </script>
 
-            // Iterate through the specified columns
-            targetColumns.forEach(function (colIdx) {
-                // Create the select list and search operation
-                var select = $('<select class="form-select"><option value="">Selectionner un option</option></select>')
-                    .appendTo(
-                        table.column(colIdx).footer() // Append to the footer of the specific column
-                    )
-                    .on('change', function () {
-                        table
-                            .column(colIdx)
-                            .search($(this).val())
-                            .draw();
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let deleteButton = document.getElementById("process-selected");
+            let activateButton = document.getElementById("activate-selected");
+            let deactivateButton = document.getElementById("deactivate-selected");
+
+            deleteButton.style.display = "none";
+            activateButton.style.display = "none";
+            deactivateButton.style.display = "none";
+
+            function updateButtonVisibility() {
+                let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
+                deleteButton.style.display = anyChecked ? "block" : "none";
+                activateButton.style.display = anyChecked ? "block" : "none";
+                deactivateButton.style.display = anyChecked ? "block" : "none";
+            }
+
+            document.querySelectorAll(".row-select").forEach((checkbox) => {
+                checkbox.addEventListener("change", updateButtonVisibility);
+            });
+
+            document.getElementById("select-all").addEventListener("change", function () {
+                let isChecked = this.checked;
+                document.querySelectorAll(".row-select").forEach((checkbox) => {
+                    checkbox.checked = isChecked;
+                });
+                updateButtonVisibility();
+            });
+
+            // Delete button logic
+            deleteButton.addEventListener("click", function () {
+                let selectedIds = [];
+
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: "Vous ne pourrez pas revenir en arrière\u00A0!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Oui, supprimez-les !"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("deleteCities.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    selectedIds.forEach(id => {
+                                        document.querySelector(`.row-select[value="${id}"]`).closest("tr").remove();
+                                    });
+
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Supprimé!",
+                                        text: "Les villes sélectionnés ont été supprimés.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload(); // Reload page after deletion
+                                    });
+
+                                    updateButtonVisibility(); // Hide button if no rows left
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: "Impossible de supprimer certains ou tous les villes."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "Something went wrong!"
+                                });
+                                console.error("Error:", error);
+                            });
+                    }
+                });
+            });
+
+            // Activate button logic
+            activateButton.addEventListener("click", function () {
+                bulkToggleStatus("ACTIVE");
+            });
+
+            // Deactivate button logic
+            deactivateButton.addEventListener("click", function () {
+                bulkToggleStatus("INACTIVE");
+            });
+
+            function bulkToggleStatus(newStatus) {
+                let selectedIds = [];
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: `Vous êtes sur le point de ${newStatus.toLowerCase()} les statuts sélectionnés.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Oui, continuez !",
+                    cancelButtonText: "Non, annulez !",
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("toggleStatusCitiesBulk.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds, status: newStatus })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Mis à jour !",
+                                        text: "Les villes sélectionnés ont été mis à jour.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Erreur",
+                                        text: "Impossible de mettre à jour certains ou tous les villes."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Erreur",
+                                    text: "Une erreur s'est produite !"
+                                });
+                                console.error("Erreur\u00A0:", error);
+                            });
+                    }
+                });
+            }
+
+            // Handle the toggle status button click event
+            document.querySelectorAll('.toggle-status').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const statusId = this.getAttribute('data-id');
+                    const newStatus = this.getAttribute('data-status');
+
+                    // SweetAlert2 confirmation prompt
+                    Swal.fire({
+                        title: 'Es-tu sûr?',
+                        text: `Vous êtes sur le point de ${newStatus.toLowerCase()} ce statut.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Oui, continuez !',
+                        cancelButtonText: 'Non, annule!',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect to the PHP script that handles the status change
+                            window.location.href = `toggleStatusCities.php?id=${statusId}&status=${newStatus}`;
+                        }
                     });
-
-                // Get the unique search data for the specific column and add to the select list
-                table
-                    .column(colIdx)
-                    .cache('search') // Cache the search data
-                    .sort() // Sort the data
-                    .unique() // Get unique values
-                    .each(function (d) {
-                        select.append($('<option value="' + d + '">' + d + '</option>'));
-                    });
+                });
             });
         });
     </script>
 
-    <script>
-        document.getElementById("syncButton").addEventListener("click", function () {
-            fetch('update_leads.php') // Adjust the path if needed
-                .then(response => response.json())
-                .then(data => {
-                    if (data.updated > 0 || data.inserted > 0) {
-                        Swal.fire({
-                            title: "Succès!",
-                            text: `${data.inserted} nouveaux leads ajoutés, ${data.updated} leads synchronisés.`,
-                            icon: "success"
-                        }).then(() => {
-                            location.reload(); // Reload page after deletion
-                        });
-                    } else {
-                        Swal.fire({
-                            title: "Aucun changement",
-                            text: "Aucune nouvelle donnée n’a été extraite de la feuille.",
-                            icon: "info"
-                        });
-                    }
-                })
-                .catch(error => {
-                    Swal.fire({
-                        title: "Error",
-                        text: "Une erreur s'est produite lors de la synchronisation des données.",
-                        icon: "error"
-                    });
-                });
-        });
-    </script>
 
-    <script>
-        function viewLead(id) {
-            // Send AJAX request to fetch lead details
-            fetch("getLeadDetails.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: "id=" + id,
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        Swal.fire("Erreur", data.error, "error");
-                    } else {
-                        // Display lead details in SweetAlert
-                        Swal.fire({
-                            title: "Détails du Lead",
-                            html: `
-                <div class="details" style="text-align: left; margin: 20px; line-height: 2;">
-                    <div class="row d-flex align-items-center justify-content-between">
-                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-secondary text-secondary">ID: ${data.tracking_id}</span></div>
-                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-warning text-warning">${data.created_at}</span></div>
-                        
-
-                    </div>
-                    <strong>Nom:</strong> ${data.name} <br>
-                    <strong>Téléphone:</strong> ${data.phone_number} <br>
-                    <strong>Adresse:</strong> ${data.address}, ${data.city} <br>
-                    <strong>Produit:</strong> ${data.product} <br>
-                    <strong>Prix:</strong> ${data.price} Dhs <br>
-                    <strong>Agent:</strong> <span class="mb-1 badge bg-light-info text-info">${data.agent} </span><br>
-                    <strong>Status:</strong> <span class="${data.status_class}">${data.status}</span><br>
-
-                    <strong>Commission:</strong> ${data.comission} Dhs <br>
-                    <strong>Commentaires:</strong> ${data.comments} <br>
-                </div>
-                `,
-                            icon: "info",
-                            confirmButtonText: "Fermer"
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error("Erreur:", error);
-                    Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
-                });
-        }
-
-        function viewFollowUp(id) {
-            fetch("getFollowUpDetails.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: "id=" + id,
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        Swal.fire("Erreur", data.error, "error");
-                    } else {
-                        // Construct timeline HTML
-                        let timelineHtml = '<ul class="timeline-widget mb-0 position-relative mb-n5">';
-
-                        data.forEach(followUp => {
-                            timelineHtml += `
-                    <li class="timeline-item d-flex position-relative overflow-hidden">
-                        <div class="timeline-time text-dark flex-shrink-0 text-end fs-3">
-                            ${followUp.created_at}
-                        </div>
-                        <div class="timeline-badge-wrap d-flex flex-column align-items-center">
-                            <span class="timeline-badge border-2 border border-primary flex-shrink-0 my-8"></span>
-                            <span class="timeline-badge-border d-block flex-shrink-0"></span>
-                        </div>
-                        <div class="timeline-desc fs-3 text-dark mt-n1">
-                            <p>${followUp.message ? followUp.message : 'Rien à afficher'}</p>
-                        </div>
-                    </li>
-                `;
-                        });
-
-                        timelineHtml += "</ul>";
-
-                        // Display lead details in SweetAlert
-                        Swal.fire({
-                            title: "Suivi",
-                            html: `
-        <div class="timeline-container d-flex flex-column" style="height: 35vh; overflow-y: auto;">
-            ${timelineHtml}
-        </div>
-    `,
-                            icon: "question",
-                            confirmButtonText: "Fermer"
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error("Erreur:", error);
-                    Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
-                });
-        }
-    </script>
-
-
-    <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
-    <script src="dist/js/forms/sweet-alert.init.js"></script>
 
 </body>
 

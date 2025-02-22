@@ -23,12 +23,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['spreadsheet_id'])) {
         exit;
     }
 
+    $status = "ACTIVE"; //default
+
     $inserted = 0;
     foreach ($_POST['spreadsheet_id'] as $spreadsheet_id) {
         if (!empty($spreadsheet_id)) {
-            $sql = "INSERT INTO user_spreadsheets (userID, spreadsheet_id) VALUES (?, ?)";
+            $sql = "INSERT INTO user_spreadsheets (userID, spreadsheet_id, status) VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ss", $userID, $spreadsheet_id);
+            $stmt->bind_param("sss", $userID, $spreadsheet_id, $status);
 
             if ($stmt->execute()) {
                 $inserted++;
@@ -47,6 +49,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['spreadsheet_id'])) {
                 icon: 'success',
                 timer: 3000,
                 showConfirmButton: false
+            }).then(() => {
+              window.location.href = 'viewSpreadsheets.php'; // Redirect after the SweetAlert
             });
         </script>";
     } else {
@@ -151,7 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['spreadsheet_id'])) {
                             <div class="tab-pane fade show active" id="pills-account" role="tabpanel"
                                 aria-labelledby="pills-account-tab" tabindex="0">
                                 <div class="row">
-                                    <?php echo $message ?>
+                                    <?php // echo $message ?>
 
 
                                     <div class="col-12">

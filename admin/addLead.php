@@ -12,6 +12,12 @@ $userDataP = mysqli_query($conn, $sql_);
 $sql_ = "SELECT id, full_name FROM agent_info";
 $agentDataP = mysqli_query($conn, $sql_);
 
+$sql_ = "SELECT statut, div_class FROM statuses WHERE visibility='ACTIVE'";
+$statusesDataP = mysqli_query($conn, $sql_);
+
+$sql_ = "SELECT city FROM cities WHERE status='ACTIVE'";
+$citiesDataP = mysqli_query($conn, $sql_);
+
 $tracking_id = strtoupper(substr(md5(uniqid(rand(), true)), 0, 10));
 $message = '';
 $alertScript = ''; // This will store the SweetAlert script
@@ -183,21 +189,12 @@ mysqli_close($conn);
                                         <select class="form-select" aria-label="Default select example" name="city"
                                             required>
                                             <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="Casablanca">Casablanca</option>
-                                            <option value="Rabat">Rabat</option>
-                                            <option value="Fes">Fes</option>
-                                            <option value="Marrakesh">Marrakesh</option>
-                                            <option value="Tangier">Tangier</option>
-                                            <option value="Agadir">Agadir</option>
-                                            <option value="Meknes">Meknes</option>
-                                            <option value="Oujda">Oujda</option>
-                                            <option value="Kenitra">Kenitra</option>
-                                            <option value="Tetouan">Tetouan</option>
-                                            <option value="Safi">Safi</option>
-                                            <option value="Khouribga">Khouribga</option>
-                                            <option value="El Jadida">El Jadida</option>
-                                            <option value="Nador">Nador</option>
-                                            <option value="Beni Mellal">Beni Mellal</option>
+                                            <?php
+                                            while ($row = mysqli_fetch_assoc($citiesDataP)) {
+                                                $city = htmlspecialchars($row['city']);
+                                                echo "<option value='$city'>$city</option>";
+                                            }
+                                            ?>
                                         </select>
                                     </div>
 
@@ -230,19 +227,12 @@ mysqli_close($conn);
                                         <select class="form-select" aria-label="Default select example" name="status"
                                             required>
                                             <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="Confirmer">Confirmer</option>
-                                            <option value="Confirmer Relance">Confirmer Relance</option>
-                                            <option value="Rappel">Rappel</option>
-                                            <option value="Appel X4">Appel X4</option>
-                                            <option value="Boite Vocale">Boite Vocale</option>
-                                            <option value="Pas de réponse">Pas de réponse</option>
-                                            <option value="Occupé">Occupé</option>
-                                            <option value="Annulé">Annulé</option>
-                                            <option value="Msj Wtsp">Msj Wtsp</option>
-                                            <option value="Nouveau colis">Nouveau colis</option>
-                                            <option value="Rammasser">Rammasser</option>
-                                            <option value="Nouveau colis: reporté">Nouveau colis: reporté</option>
-                                            <option value="Nouveau colis: change">Nouveau colis: change</option>
+                                            <?php
+                                            while ($row = mysqli_fetch_assoc($statusesDataP)) {
+                                                $status = htmlspecialchars($row['statut']);
+                                                echo "<option value='$status'>$status</option>";
+                                            }
+                                            ?>
                                         </select>
                                     </div>
 
@@ -295,7 +285,7 @@ mysqli_close($conn);
                                         <label for="exampleInputPassword1" class="form-label fw-semibold">Agent</label>
                                         <select class="form-select" aria-label="Default select example" name="agentID">
                                             <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="pas encore attributé">pas encore attributé</option>
+                                            <option value="pas encore attribué">pas encore attribué</option>
                                             <?php
                                             // Loop through the users and create options
                                             while ($row = mysqli_fetch_assoc($agentDataP)) {

@@ -15,7 +15,7 @@ $result = $stmt->get_result();
 $table_data44 = '';
 while ($notif = $result->fetch_assoc()) {
     $notifID = $notif['id'];
-    $message = $notif['message'];
+    $message_n = $notif['message'];
     $status = $notif['status'];
     $created_at = $notif['created_at'];
 
@@ -32,7 +32,7 @@ while ($notif = $result->fetch_assoc()) {
             <h6 class='mb-1 fw-semibold' style='white-space: normal; /* Allows text to wrap */
     word-wrap: break-word; /* Ensures long words break properly */
     overflow-wrap: break-word; /* Alternative for breaking long words */
-    max-width: 100%; /* Ensures it does not overflow */'>$message</h6>
+    max-width: 100%; /* Ensures it does not overflow */'>$message_n</h6>
             <span class='d-block'>$created_at</span>
         </div>
     </a>

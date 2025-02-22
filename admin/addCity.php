@@ -1,162 +1,76 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-// Connect to the database
+
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-$sql = "SELECT * FROM leads WHERE agent = '$agentName' OR agent = 'pas encore attribué' OR agent = 'pas encore attributé'";
-$result = mysqli_query($conn, $sql);
-$status = '';
+$alertScript = '';
 
-$table_data = '';
-
-
-while ($row = mysqli_fetch_assoc($result)) {
-
-
-
-    if ($row['status'] == 'CONFIRMER' or $row['status'] == 'RAMMASSER') {
-        $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'RAPPEL') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'BOITE VOCALE') {
-        $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'PAS DE RÉPONSE') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'OCCUPÉ') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'ANNULÉ') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'MESSAGE WHATSAPP') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
+if (isset($_POST['submit'])) {
+    $cities = $_POST['cities'];
+    $status = "ACTIVE";
+    if (empty($cities)) {
+        $alertScript = "
+            <script>
+                Swal.fire({
+                    title: 'Erreur',
+                    text: 'Veuillez entrer au moins une ville.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            </script>
+        ";
     } else {
-        $status_class = "badge bg-primary fw-semibold fs-2";
+        $all_inserted = true;
+        foreach ($cities as $city) {
+            $city = htmlspecialchars($city, ENT_QUOTES, 'UTF-8');
+            $status = 'ACTIVE';
+
+            $sql = "INSERT INTO cities (city, status) VALUES (?, ?)";
+            $stmt = $conn->prepare($sql);
+
+            if ($stmt === false) {
+                die("Prepare failed: " . htmlspecialchars($conn->error));
+            }
+
+            $stmt->bind_param("ss", $city, $status);
+
+            if (!$stmt->execute()) {
+                $all_inserted = false;
+                $alertScript = "
+                    <script>
+                        Swal.fire({
+                            title: 'Erreur',
+                            text: 'Erreur lors de l\'ajout de la ville: " . htmlspecialchars($stmt->error) . "',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    </script>
+                ";
+                break;
+            }
+
+            $stmt->close();
+        }
+
+        if ($all_inserted) {
+            $alertScript = "
+                <script>
+                    Swal.fire({
+                        title: 'Villes ajoutées',
+                        text: 'Les villes ont été ajoutées avec succès.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                      window.location.href = 'viewCities.php';
+                    });
+                </script>
+            ";
+        }
     }
-
-
-    // Check if the agent is 'pas encore attribué'
-    $assign_button = '';
-    if ($row['agent'] == 'pas encore attribué' or $row['agent'] == 'pas encore attributé') {
-        $assign_button = '
-            <li>
-                <a class="dropdown-item d-flex align-items-center gap-3" href="assignLead.php?id=' . $row['id'] . '">
-                    <i class="fs-4 ti ti-user-plus"></i>Assignez-vous
-                </a>
-            </li>';
-    }
-
-    $modify_button = '';
-    if ($row['agent'] != 'pas encore attribué') {
-        $modify_button = '
-            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-3" href="editLead.php?id=' . $row['id'] . '"><i
-                                        class="fs-4 ti ti-edit"></i>Modifer info</a>
-                            </li>';
-    }
-
-
-
-    $table_data = '
-            <tr>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-0" style="max-width: 300px; word-wrap: break-word; white-space: normal;">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['tracking_id'] . '</h6>
-                            <span class="fw-normal">' . $row['created_at'] . '</span>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['name'] . '</h6>
-                            <span class="fw-normal">' . $row['phone_number'] . '</span>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['address'] . ',</h6>
-                            <span class="fw-normal" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['city'] . '</span>
-                        </div>
-                    </div>
-                </td> 
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-0">
-                            <h6 class="fs-4 fw-normal mb-0">' . $row['product'] . '</h6>
-                            <span class="fw-normal">' . $row['price'] . ' Dhs</span>
-                            
-                        </div>
-                    </div>
-                </td>
-
-                <td>
-                    <span
-                        class="badge bg-secondary fw-semibold fs-2" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['agent'] . '</span>
-                </td>
-                
-                
-                
-                <td>
-                    <span
-                        class="' . $status_class . '" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['status'] . '</span>
-                </td>
-                
-                <td>
-                    <p class="mb-0 fw-normal" style="max-width: 400px; word-wrap: break-word; white-space: normal;">' . $row['comments'] . '</p>
-                </td>
-                <td>
-                    <div class="dropdown dropstart">
-                        <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            <i class="ti ti-dots fs-5"></i>
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButto"
-                        <li>
-                                <a class="dropdown-item d-flex align-items-center gap-3" href="#" onclick="viewLead(' . $row['id'] . ')"><i
-                                        class="fs-4 ti ti-eye"></i>Details</a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-3" href="#" onclick="viewFollowUp(' . $row['id'] . ')"><i
-                                        class="fs-4 ti ti-info-square-rounded"></i>Suivi</a>
-                            </li>
-                            ' . $modify_button . '
-                            ' . $assign_button . '
-                        </ul>
-                    </div>
-                </td>
-                
-
-                
-                
-                </tr>
-    
-    ' . $table_data;
-
 }
-
-$sql = "SELECT COUNT(*) AS confirmed FROM leads WHERE status='CONFIRMER' AND agent = '$agentName'";
-$result = mysqli_query($conn, $sql);
-$confirmedParcels = mysqli_fetch_assoc($result)['confirmed'];
-
-$sql = "SELECT COUNT(*) AS new FROM leads WHERE (status='NOUVEAU' OR status='NOUVEAU COLIS') AND agent = '$agentName'";
-$result = mysqli_query($conn, $sql);
-$newParcels = mysqli_fetch_assoc($result)['new'];
-
-$sql = "SELECT COUNT(*) AS collected FROM leads WHERE (status='RAMMASSER' OR status='rammassé') AND agent = '$agentName'";
-$result = mysqli_query($conn, $sql);
-$collectedParcels = mysqli_fetch_assoc($result)['collected'];
-
-$sql = "SELECT COUNT(*) AS problems FROM leads WHERE (status='RAPPEL' OR status='APPEL X4' OR status='BOITE VOCALE' OR status='PAS DE RÉPONSE' OR status='OCCUPÉ' OR status='MSJ WTSP') AND agent = '$agentName'";
-$result = mysqli_query($conn, $sql);
-$problemsParcels = mysqli_fetch_assoc($result)['problems'];
-
-mysqli_close($conn);
-
 ?>
 
 <!DOCTYPE html>
@@ -164,7 +78,7 @@ mysqli_close($conn);
 
 <head>
     <!--  Title -->
-    <title>Leads</title>
+    <title>Admin - Ajouter Ville</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -177,9 +91,7 @@ mysqli_close($conn);
     <!--  Favicon -->
     <link rel="shortcut icon" type="image/png" href="dist/images/logos/favicon.ico" />
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
-    <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
-
 </head>
 
 <body>
@@ -208,13 +120,13 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Leads</h4>
+                                <h4 class="fw-semibold mb-8">Villes</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="viewLeads.php">List Leads</a>
+                                            <a class="text-muted " href="">Nouveau Ville</a>
                                         </li>
-                                        <li class="breadcrumb-item" aria-current="page">Voir Tous</li>
+                                        <li class="breadcrumb-item" aria-current="page">Ajouter nouveau</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -227,103 +139,40 @@ mysqli_close($conn);
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-sm-6 col-xl-3">
-                        <a href="" class="p-4 text-center bg-light-success card shadow-none rounded-2">
 
-                            <p class="fw-semibold text-success mb-1">Confirmés</p>
-                            <h4 class="fw-semibold text-success mb-0"><?php echo $confirmedParcels ?></h4>
-                        </a>
-                    </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <a href="" class="p-4 text-center bg-light-primary card shadow-none rounded-2">
+                <form method="POST">
+                    <div class="card">
+                        <?php echo $alertScript; ?>
 
-                            <p class="fw-semibold text-primary mb-1">Nouveau</p>
-                            <h4 class="fw-semibold text-primary mb-0"><?php echo $newParcels ?></h4>
-                        </a>
-                    </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <a href="" class="p-4 text-center bg-light-warning card shadow-none rounded-2">
+                        <div class="card-body p-4 border-bottom" id="city-rows">
+                            <div class="row city-row">
+                                <div class="col-lg-1 d-flex align-items-center">
+                                </div>
+                                <div class="col-lg-3 d-flex align-items-center">
+                                    <div class="mb-4">
+                                        <label for="city">Ville:</label>
+                                        <input type="text" class="form-control mt-2" name="cities[]"
+                                            placeholder="Entrer la ville" required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                            <p class="fw-semibold text-warning mb-1">Rammassé</p>
-                            <h4 class="fw-semibold text-warning mb-0"><?php echo $collectedParcels ?></h4>
-                        </a>
-                    </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <a href="" class="p-4 text-center bg-light-danger card shadow-none rounded-2">
-
-                            <p class="fw-semibold text-danger mb-1">Attente de suivi</p>
-                            <h4 class="fw-semibold text-danger mb-0"><?php echo $problemsParcels ?></h4>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-secondary mb-3" id="syncButton"><i class="ti ti-refresh"
-                            style="margin-right: 6px;"></i>Synchroniser les données</button>
-                </div>
-                <div class="datatables">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table border text-nowrap customize-table mb-0 align-middle"
-                                            id="leads_table">
-                                            <thead class="text-dark fs-4">
-                                                <tr>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">ID</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Nom</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Adresse</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Produit</h6>
-                                                    </th>
-
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Agent</h6>
-                                                    </th>
-
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Status</h6>
-                                                    </th>
-
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Commentaires</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Actions</h6>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php echo $table_data ?>
-                                            </tbody>
-
-                                            <tfoot>
-                                                <!-- start row -->
-                                                <tr>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                </tr>
-                                                <!-- end row -->
-                                            </tfoot>
-                                        </table>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <button type="submit" name="submit" class="btn btn-primary">Ajouter
+                                            Villes</button>
+                                        <button type="button" id="add-city-row" class="btn btn-secondary">Ajouter une
+                                            autre ville</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
+
 
 
 
@@ -721,203 +570,47 @@ mysqli_close($conn);
     <script src="dist/js/apps/chat.js"></script>
     <script src="dist/libs/apexcharts/dist/apexcharts.min.js"></script>
     <script src="dist/js/widgets-charts.js"></script>
+    <script src="dist/libs/jquery-steps/build/jquery.steps.min.js"></script>
+    <script src="dist/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="dist/js/forms/form-wizard.js"></script>
 
-    <script src="dist/libs/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="dist/js/datatable/datatable-api.init.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <script>
-        $(document).ready(function () {
-            var table = $('#leads_table').DataTable({
-                "paging": true,
-                "scrollX": true,
-                "scrollY": true,
-                "searching": true,
-                "ordering": true,
-                "pageLength": 10,
-                "language": {
-                    "lengthMenu": "Afficher _MENU_ entrées",
-                    "zeroRecords": "Aucun enregistrement trouvé",
-                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                    "infoEmpty": "Aucune entrée disponible",
-                    "infoFiltered": "(filtré de _MAX_ entrées au total)",
-                    "search": "Rechercher:",
-                    "paginate": {
-                        "first": "Premier",
-                        "last": "Dernier",
-                        "next": "Suivant",
-                        "previous": "Précédent"
-                    }
-                }
-            });
-
-            // Specify the columns where you want to add the select input (0-based index)
-            var targetColumns = [4, 5]; // 2nd, 5th, and 6th columns
-
-            // Iterate through the specified columns
-            targetColumns.forEach(function (colIdx) {
-                // Create the select list and search operation
-                var select = $('<select class="form-select"><option value="">Selectionner un option</option></select>')
-                    .appendTo(
-                        table.column(colIdx).footer() // Append to the footer of the specific column
-                    )
-                    .on('change', function () {
-                        table
-                            .column(colIdx)
-                            .search($(this).val())
-                            .draw();
-                    });
-
-                // Get the unique search data for the specific column and add to the select list
-                table
-                    .column(colIdx)
-                    .cache('search') // Cache the search data
-                    .sort() // Sort the data
-                    .unique() // Get unique values
-                    .each(function (d) {
-                        select.append($('<option value="' + d + '">' + d + '</option>'));
-                    });
-            });
-        });
-    </script>
-
-    <script>
-        document.getElementById("syncButton").addEventListener("click", function () {
-            fetch('update_leads.php') // Adjust the path if needed
-                .then(response => response.json())
-                .then(data => {
-                    if (data.updated > 0 || data.inserted > 0) {
-                        Swal.fire({
-                            title: "Succès!",
-                            text: `${data.inserted} nouveaux leads ajoutés, ${data.updated} leads synchronisés.`,
-                            icon: "success"
-                        }).then(() => {
-                            location.reload(); // Reload page after deletion
-                        });
-                    } else {
-                        Swal.fire({
-                            title: "Aucun changement",
-                            text: "Aucune nouvelle donnée n’a été extraite de la feuille.",
-                            icon: "info"
-                        });
-                    }
-                })
-                .catch(error => {
-                    Swal.fire({
-                        title: "Error",
-                        text: "Une erreur s'est produite lors de la synchronisation des données.",
-                        icon: "error"
-                    });
-                });
-        });
-    </script>
-
-    <script>
-        function viewLead(id) {
-            // Send AJAX request to fetch lead details
-            fetch("getLeadDetails.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: "id=" + id,
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        Swal.fire("Erreur", data.error, "error");
-                    } else {
-                        // Display lead details in SweetAlert
-                        Swal.fire({
-                            title: "Détails du Lead",
-                            html: `
-                <div class="details" style="text-align: left; margin: 20px; line-height: 2;">
-                    <div class="row d-flex align-items-center justify-content-between">
-                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-secondary text-secondary">ID: ${data.tracking_id}</span></div>
-                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-warning text-warning">${data.created_at}</span></div>
-                        
-
-                    </div>
-                    <strong>Nom:</strong> ${data.name} <br>
-                    <strong>Téléphone:</strong> ${data.phone_number} <br>
-                    <strong>Adresse:</strong> ${data.address}, ${data.city} <br>
-                    <strong>Produit:</strong> ${data.product} <br>
-                    <strong>Prix:</strong> ${data.price} Dhs <br>
-                    <strong>Agent:</strong> <span class="mb-1 badge bg-light-info text-info">${data.agent} </span><br>
-                    <strong>Status:</strong> <span class="${data.status_class}">${data.status}</span><br>
-
-                    <strong>Commission:</strong> ${data.comission} Dhs <br>
-                    <strong>Commentaires:</strong> ${data.comments} <br>
-                </div>
-                `,
-                            icon: "info",
-                            confirmButtonText: "Fermer"
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error("Erreur:", error);
-                    Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
-                });
-        }
-
-        function viewFollowUp(id) {
-            fetch("getFollowUpDetails.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: "id=" + id,
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        Swal.fire("Erreur", data.error, "error");
-                    } else {
-                        // Construct timeline HTML
-                        let timelineHtml = '<ul class="timeline-widget mb-0 position-relative mb-n5">';
-
-                        data.forEach(followUp => {
-                            timelineHtml += `
-                    <li class="timeline-item d-flex position-relative overflow-hidden">
-                        <div class="timeline-time text-dark flex-shrink-0 text-end fs-3">
-                            ${followUp.created_at}
-                        </div>
-                        <div class="timeline-badge-wrap d-flex flex-column align-items-center">
-                            <span class="timeline-badge border-2 border border-primary flex-shrink-0 my-8"></span>
-                            <span class="timeline-badge-border d-block flex-shrink-0"></span>
-                        </div>
-                        <div class="timeline-desc fs-3 text-dark mt-n1">
-                            <p>${followUp.message ? followUp.message : 'Rien à afficher'}</p>
-                        </div>
-                    </li>
-                `;
-                        });
-
-                        timelineHtml += "</ul>";
-
-                        // Display lead details in SweetAlert
-                        Swal.fire({
-                            title: "Suivi",
-                            html: `
-        <div class="timeline-container d-flex flex-column" style="height: 35vh; overflow-y: auto;">
-            ${timelineHtml}
-        </div>
-    `,
-                            icon: "question",
-                            confirmButtonText: "Fermer"
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error("Erreur:", error);
-                    Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
-                });
-        }
-    </script>
 
 
     <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="dist/js/forms/sweet-alert.init.js"></script>
+    <?php echo $alertScript; ?>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addCityRowButton = document.getElementById('add-city-row');
+            const cityRowsContainer = document.getElementById('city-rows');
+
+            addCityRowButton.addEventListener('click', function () {
+                const newRow = document.createElement('div');
+                newRow.classList.add('row', 'city-row');
+                newRow.innerHTML = `
+                <div class="col-lg-1 d-flex align-items-center">
+                    <button type="button" class="btn btn-danger ms-2 delete-row">X</button>
+                </div>
+                <div class="col-lg-3 d-flex align-items-center">
+                    <div class="mb-4">
+                        <label for="city">Ville:</label>
+                        <input type="text" class="form-control mt-2" name="cities[]"
+                            placeholder="Entrer la ville" required />
+                    </div>
+                </div>
+            `;
+                cityRowsContainer.appendChild(newRow);
+
+                // Add event listener for the delete button
+                newRow.querySelector('.delete-row').addEventListener('click', function () {
+                    cityRowsContainer.removeChild(newRow);
+                });
+            });
+        });
+    </script>
 
 </body>
 

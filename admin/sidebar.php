@@ -403,6 +403,62 @@
           </ul>
         </li>
 
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow" href="#" aria-expanded="false">
+            <span class="d-flex">
+              <i class="ti ti-status-change"></i>
+            </span>
+            <span class="hide-menu">Statuts</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="viewStatuses.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">List Statuts</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="addStatus.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">Ajouter Statut</span>
+              </a>
+            </li>
+
+          </ul>
+        </li>
+
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow" href="#" aria-expanded="false">
+            <span class="d-flex">
+              <i class="ti ti-location"></i>
+            </span>
+            <span class="hide-menu">Villes</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="viewCities.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">List Villes</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="addCity.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">Ajouter Ville</span>
+              </a>
+            </li>
+
+          </ul>
+        </li>
+
 
 
 

@@ -1,13 +1,16 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-// Connect to the database
+// Connect to the database 
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
 $tracking_id = strtoupper(substr(md5(uniqid(rand(), true)), 0, 10));
 $message = '';
+
+$sql_ = "SELECT city FROM cities WHERE status='ACTIVE'";
+$citiesDataP = mysqli_query($conn, $sql_);
 
 $alertScript = ''; // This will store the SweetAlert script
 
@@ -184,21 +187,12 @@ mysqli_close($conn);
                                         <select class="form-select" aria-label="Default select example" name="city"
                                             required>
                                             <option value="" disabled selected>Sélectionnez une option</option>
-                                            <option value="Casablanca">Casablanca</option>
-                                            <option value="Rabat">Rabat</option>
-                                            <option value="Fes">Fes</option>
-                                            <option value="Marrakesh">Marrakesh</option>
-                                            <option value="Tangier">Tangier</option>
-                                            <option value="Agadir">Agadir</option>
-                                            <option value="Meknes">Meknes</option>
-                                            <option value="Oujda">Oujda</option>
-                                            <option value="Kenitra">Kenitra</option>
-                                            <option value="Tetouan">Tetouan</option>
-                                            <option value="Safi">Safi</option>
-                                            <option value="Khouribga">Khouribga</option>
-                                            <option value="El Jadida">El Jadida</option>
-                                            <option value="Nador">Nador</option>
-                                            <option value="Beni Mellal">Beni Mellal</option>
+                                            <?php
+                                            while ($row = mysqli_fetch_assoc($citiesDataP)) {
+                                                $city = htmlspecialchars($row['city']);
+                                                echo "<option value='$city'>$city</option>";
+                                            }
+                                            ?>
                                         </select>
                                     </div>
 

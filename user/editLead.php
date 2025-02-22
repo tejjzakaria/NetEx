@@ -9,11 +9,16 @@ include "fetchUserData.php";
 $message = "";
 $alertScript = ''; // This will store the SweetAlert script
 
+$sql_ = "SELECT city FROM cities WHERE status='ACTIVE'";
+$citiesDataP = mysqli_query($conn, $sql_);
+
 $id = $_GET['id'];
 $sql = "SELECT * FROM leads WHERE id='$id' AND userID='$userID'";
 $result = mysqli_query($conn, $sql);
 $leadData = mysqli_fetch_assoc($result);
 
+
+$selectedCity = $leadData['city'];  // Retrieve this from your parcel data
 if (isset($_POST['submit'])) {
     // Get form data
     $id = $_POST['id'];
@@ -155,21 +160,18 @@ mysqli_close($conn);
                                         <label for="" class="form-label fw-semibold">Ville</label>
                                         <select class="form-select" aria-label="Default select example" name="city"
                                             required>
-                                            <option value="Casablanca" <?php echo ($leadData['city'] == 'Casablanca') ? 'selected' : ''; ?>>Casablanca</option>
-                                            <option value="Rabat" <?php echo ($leadData['city'] == 'Rabat') ? 'selected' : ''; ?>>Rabat</option>
-                                            <option value="Fes" <?php echo ($leadData['city'] == 'Fes') ? 'selected' : ''; ?>>Fes</option>
-                                            <option value="Marrakesh" <?php echo ($leadData['city'] == 'Marrakesh') ? 'selected' : ''; ?>>Marrakesh</option>
-                                            <option value="Tangier" <?php echo ($leadData['city'] == 'Tangier') ? 'selected' : ''; ?>>Tangier</option>
-                                            <option value="Agadir" <?php echo ($leadData['city'] == 'Agadir') ? 'selected' : ''; ?>>Agadir</option>
-                                            <option value="Meknes" <?php echo ($leadData['city'] == 'Meknes') ? 'selected' : ''; ?>>Meknes</option>
-                                            <option value="Oujda" <?php echo ($leadData['city'] == 'Oujda') ? 'selected' : ''; ?>>Oujda</option>
-                                            <option value="Kenitra" <?php echo ($leadData['city'] == 'Kenitra') ? 'selected' : ''; ?>>Kenitra</option>
-                                            <option value="Tetouan" <?php echo ($leadData['city'] == 'Tetouan') ? 'selected' : ''; ?>>Tetouan</option>
-                                            <option value="Safi" <?php echo ($leadData['city'] == 'Safi') ? 'selected' : ''; ?>>Safi</option>
-                                            <option value="Khouribga" <?php echo ($leadData['city'] == 'Khouribga') ? 'selected' : ''; ?>>Khouribga</option>
-                                            <option value="El Jadida" <?php echo ($leadData['city'] == 'El Jadida') ? 'selected' : ''; ?>>El Jadida</option>
-                                            <option value="Nador" <?php echo ($leadData['city'] == 'Nador') ? 'selected' : ''; ?>>Nador</option>
-                                            <option value="Beni Mellal" <?php echo ($leadData['city'] == 'Beni Mellal') ? 'selected' : ''; ?>>Beni Mellal</option>
+                                            <?php
+                                            // Loop through the users and create options
+                                            while ($row = mysqli_fetch_assoc($citiesDataP)) {
+                                                $city = htmlspecialchars($row['city']);  // Optional, display full_name
+                                            
+                                                // Check if this user is the one associated with the parcel
+                                                $selected = ($city == $selectedCity) ? 'selected' : '';
+
+                                                // Output the option with the selected attribute if it's the current user
+                                                echo "<option value='$city' $selected>$city</option>";
+                                            }
+                                            ?>
                                         </select>
                                     </div>
 

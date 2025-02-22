@@ -5,10 +5,14 @@ ini_set('display_errors', 1);
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
-$sql = "SELECT leads.*, user_info.full_name, 
-        (SELECT store_name FROM user_stores WHERE user_stores.userID = user_info.id LIMIT 1) AS store_name
+$sql = "SELECT 
+            leads.*, 
+            user_info.full_name, 
+            statuses.div_class,
+            (SELECT store_name FROM user_stores WHERE user_stores.userID = user_info.id LIMIT 1) AS store_name
         FROM leads 
         JOIN user_info ON leads.userID = user_info.id 
+        LEFT JOIN statuses ON leads.status = statuses.statut
         ORDER BY leads.id DESC";
 
 
@@ -20,23 +24,7 @@ $status = '';
 $table_data = '';
 
 while ($row = mysqli_fetch_assoc($result)) {
-    if ($row['status'] == 'CONFIRMER' or $row['status'] == 'RAMMASSER') {
-        $status_class = "badge bg-success fw-semibold fs-2";
-    } else if ($row['status'] == 'RAPPEL') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'BOITE VOCALE') {
-        $status_class = "badge bg-danger fw-semibold fs-2";
-    } else if ($row['status'] == 'PAS DE RÉPONSE') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'OCCUPÉ') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'ANNULÉ') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else if ($row['status'] == 'MESSAGE WHATSAPP') {
-        $status_class = "badge bg-warning fw-semibold fs-2";
-    } else {
-        $status_class = "badge bg-primary fw-semibold fs-2";
-    }
+    
 
     $table_data .= '
         <tr>
@@ -72,7 +60,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                 <span class="badge bg-warning fw-semibold fs-2" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['agent'] . '</span>
             </td>
             <td>
-                <span class="' . $status_class . '" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['status'] . '</span>
+                <span class="' . $row['div_class'] . '" style="line-height: 1.5; max-width: 300px; word-wrap: break-word; white-space: normal;">' . $row['status'] . '</span>
             </td>
             <td>
                 <div class="d-flex align-items-center">
