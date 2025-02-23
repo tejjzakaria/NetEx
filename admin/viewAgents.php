@@ -16,7 +16,7 @@ $result = mysqli_query($conn, $sql);
 $table_data = '';
 
 while ($row = mysqli_fetch_assoc($result)) {
-    
+
     // Check if the agent is online (last activity within the last 5 minutes)
     $is_online = false;
     if (isset($row['last_activity'])) {
@@ -207,10 +207,20 @@ mysqli_close($conn);
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <button id="process-selected" class="btn btn-danger mb-4"
-                                        style="display: none; transition: all 0.5s ease-in-out;"><i
-                                            class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
-                                        sélectionnées</button>
+                                    <div class="d-flex align-items-center">
+                                        <button id="process-selected" class="btn btn-danger mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer la
+                                            sélection</button>
+                                        <button id="activate-selected" class="btn btn-success mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-check" style="margin-right: 6px;"></i>Activer la
+                                            sélection</button>
+                                        <button id="deactivate-selected" class="btn btn-warning mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-x" style="margin-right: 6px;"></i>Désactiver la
+                                            sélection</button>
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table border text-nowrap customize-table mb-0 align-middle"
                                             id="users_table">
@@ -764,18 +774,25 @@ mysqli_close($conn);
         }
     </script>
 
-    <script>
+<script>
         document.addEventListener("DOMContentLoaded", function () {
             let deleteButton = document.getElementById("process-selected");
-            deleteButton.style.display = "none"; // Hide button initially
+            let activateButton = document.getElementById("activate-selected");
+            let deactivateButton = document.getElementById("deactivate-selected");
 
-            function updateDeleteButtonVisibility() {
+            deleteButton.style.display = "none";
+            activateButton.style.display = "none";
+            deactivateButton.style.display = "none";
+
+            function updateButtonVisibility() {
                 let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
                 deleteButton.style.display = anyChecked ? "block" : "none";
+                activateButton.style.display = anyChecked ? "block" : "none";
+                deactivateButton.style.display = anyChecked ? "block" : "none";
             }
 
             document.querySelectorAll(".row-select").forEach((checkbox) => {
-                checkbox.addEventListener("change", updateDeleteButtonVisibility);
+                checkbox.addEventListener("change", updateButtonVisibility);
             });
 
             document.getElementById("select-all").addEventListener("change", function () {
@@ -783,9 +800,10 @@ mysqli_close($conn);
                 document.querySelectorAll(".row-select").forEach((checkbox) => {
                     checkbox.checked = isChecked;
                 });
-                updateDeleteButtonVisibility();
+                updateButtonVisibility();
             });
 
+            // Delete button logic
             deleteButton.addEventListener("click", function () {
                 let selectedIds = [];
 
@@ -797,7 +815,7 @@ mysqli_close($conn);
 
                 Swal.fire({
                     title: "Es-tu sûr?",
-                    text: "Vous ne pourrez pas revenir en arrière !",
+                    text: "Vous ne pourrez pas revenir en arrière\u00A0!",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#d33",
@@ -826,7 +844,7 @@ mysqli_close($conn);
                                         location.reload(); // Reload page after deletion
                                     });
 
-                                    updateDeleteButtonVisibility(); // Hide button if no rows left
+                                    updateButtonVisibility(); // Hide button if no rows left
                                 } else {
                                     Swal.fire({
                                         icon: "error",
@@ -846,8 +864,96 @@ mysqli_close($conn);
                     }
                 });
             });
-        });
 
+            // Activate button logic
+            activateButton.addEventListener("click", function () {
+                bulkToggleStatus("ACTIVE");
+            });
+
+            // Deactivate button logic
+            deactivateButton.addEventListener("click", function () {
+                bulkToggleStatus("INACTIVE");
+            });
+
+            function bulkToggleStatus(newStatus) {
+                let selectedIds = [];
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: `Vous êtes sur le point de ${newStatus.toLowerCase()} les agents sélectionnés.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Oui, continuez !",
+                    cancelButtonText: "Non, annulez !",
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("toggleStatusAgentsBulk.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds, status: newStatus })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Mis à jour !",
+                                        text: "Les agents sélectionnés ont été mis à jour.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Erreur",
+                                        text: "Impossible de mettre à jour certains ou tous les agents."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Erreur",
+                                    text: "Une erreur s'est produite !"
+                                });
+                                console.error("Erreur\u00A0:", error);
+                            });
+                    }
+                });
+            }
+
+            // Handle the toggle status button click event
+            document.querySelectorAll('.toggle-status').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const statusId = this.getAttribute('data-id');
+                    const newStatus = this.getAttribute('data-status');
+
+                    // SweetAlert2 confirmation prompt
+                    Swal.fire({
+                        title: 'Es-tu sûr?',
+                        text: `Vous êtes sur le point de ${newStatus.toLowerCase()} cet agent.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Oui, continuez !',
+                        cancelButtonText: 'Non, annule!',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect to the PHP script that handles the status change
+                            window.location.href = `toggleStatusAgents.php?id=${statusId}&status=${newStatus}`;
+                        }
+                    });
+                });
+            });
+        });
     </script>
 
 </body>
