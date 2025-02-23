@@ -3,9 +3,87 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 // Connect to the database
 include "../config.php";
-include "checkSession.php"; 
+include "checkSession.php";
 include "fetchUserData.php";
 
+$sql = "SELECT * FROM delivery_companies_api ORDER BY id DESC;";
+
+$result = mysqli_query($conn, $sql);
+$status = '';
+
+$table_data = '';
+
+while ($row = mysqli_fetch_assoc($result)) {
+
+    // Set status class based on spreadsheet status
+    if ($row['status'] == 'ACTIVE') {
+        $status_class = "badge bg-success fw-semibold fs-2";
+        $toggle_button = '<a href="#" class="dropdown-item d-flex align-items-center gap-3 toggle-status" data-id="' . $row['id'] . '" data-status="INACTIVE">
+                            <i class="fs-4 ti ti-x"></i> Désactiver
+                          </a>';
+    } else if ($row['status'] == 'INACTIVE') {
+        $status_class = "badge bg-danger fw-semibold fs-2";
+        $toggle_button = '<a href="#" class="dropdown-item d-flex align-items-center gap-3 toggle-status" data-id="' . $row['id'] . '" data-status="ACTIVE">
+                            <i class="fs-4 ti ti-check"></i> Activer
+                          </a>';
+    } else {
+        $status_class = "badge bg-primary fw-semibold fs-2";
+        $toggle_button = ''; // Default behavior if status is unknown
+    }
+
+    // Modify button for editing
+    $modify_button = '<li>
+                <a class="dropdown-item d-flex align-items-center gap-3" href="editTicket.php?id=' . $row['id'] . '">
+                    <i class="fs-4 ti ti-edit"></i>Modifier
+                </a>
+            </li>';
+
+    // Building the table row data
+    $table_data .= '<tr>
+        <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
+        <td>
+            <div class="d-flex align-items-center">
+                <div class="ms-0">
+                    <h6 class="fs-4 fw-normal mb-0">' . $row['id'] . '</h6>
+                    <span class="fw-normal">' . $row['created_at'] . '</span>
+                </div>
+            </div>
+        </td>
+        <td>
+            <div class="d-flex align-items-center">
+                <div class="ms-0">
+                    <span class="badge bg-light-dark text-white gap-1 d-inline-flex align-items-center">' . $row['compnay_name'] . '</span>
+                </div>
+            </div>
+        </td>
+        <td>
+            <div class="d-flex align-items-center">
+                <div class="ms-0">
+                    <span class="badge bg-light-primary text-primary gap-1 d-inline-flex align-items-center" id="spreadsheet-id-' . $row['id'] . '">' . $row['api_key'] . '</span>
+                </div>
+            </div>
+        </td>
+        <td>  
+            <span class="' . $status_class . '">' . $row['status'] . '</span>
+        </td>
+        <td>
+            <div class="dropdown dropstart">
+                <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="ti ti-dots fs-5"></i>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">  
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-3 modify-btn" data-id="' . $row['id'] . '" href="javascript:void(0)">
+                            <i class="fs-4 ti ti-edit"></i>Modifier clé
+                        </a>
+                    </li>
+                    ' . $toggle_button . '
+                </ul>
+            </div>
+        </td>
+    </tr>';
+
+}
 
 mysqli_close($conn);
 
@@ -17,7 +95,7 @@ mysqli_close($conn);
 
 <head>
     <!--  Title -->
-    <title>Google Sheets API</title>
+    <title>API des sociétés de livraison</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -32,6 +110,12 @@ mysqli_close($conn);
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
     <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
+
+    <style>
+        .sidebar-item.active .icon {
+            background-image: url('dist/images/logos/coliix-active.svg') !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -60,19 +144,97 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Contact</h4>
+                                <h4 class="fw-semibold mb-8">API</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="docsApi.php">APIs</a>
+                                            <a class="text-muted " href="">APIs</a>
                                         </li>
-                                        <li class="breadcrumb-item" aria-current="page">Google Sheet API</li>
+                                        <li class="breadcrumb-item" aria-current="page">API des sociétés de livraison
+                                        </li>
                                     </ol>
                                 </nav>
                             </div>
                             <div class="col-3">
                                 <div class="text-center mb-n5">
                                     <img src="dist/images/breadcrumb/ChatBc.png" alt="" class="img-fluid mb-n4">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between">
+
+                    <div class="d-flex align-items-center">
+                        <a href="" onclick="window.location.reload(true);"><button class="btn btn-secondary mb-3"
+                                style="margin-right: 10px;"><i class="ti ti-refresh"
+                                    style="margin-right: 6px;"></i>Actualiser les
+                                données</button></a>
+
+
+                    </div>
+
+                    <a href="addApi.php"><button class="btn btn-outline-dark mb-3"><i class="ti ti-plus"
+                                style="margin-right: 6px;"></i>Nouveau</button></a>
+
+                </div>
+
+
+                <div class="datatables">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <button id="process-selected" class="btn btn-danger mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer la
+                                            sélection</button>
+                                        <button id="activate-selected" class="btn btn-success mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-check" style="margin-right: 6px;"></i>Activer la
+                                            sélection</button>
+                                        <button id="deactivate-selected" class="btn btn-warning mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-x" style="margin-right: 6px;"></i>Désactiver la
+                                            sélection</button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table border text-nowrap customize-table mb-0 align-middle"
+                                            id="apis_table">
+                                            <thead class="text-dark fs-4">
+                                                <tr>
+                                                    <th>
+                                                        <input type="checkbox" id="select-all"
+                                                            class="form-check-input contact-chkbox primary">
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">ID</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Société de livraison</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Clé API</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Status</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Actions</h6>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php echo $table_data; ?>
+
+
+
+                                            </tbody>
+                                        </table>
+
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -86,97 +248,7 @@ mysqli_close($conn);
 
 
 
-                <div class="alert alert-warning" role="alert">
-                    <strong>Beta Version: </strong>Si vous avez besoin d'aide ou si vous avez des questions, notre
-                    équipe d'assistance est là pour vous aider. Veuillez noter que la plateforme est actuellement en
-                    phase de test bêta et que vous pouvez rencontrer des problèmes occasionnels. Vous pouvez nous
-                    contacter par e-mail à contact@tejjzakaria.com. Nous sommes disponibles du lundi au vendredi de 9 h
-                    à
-                    17 h. Pour un dépannage rapide, consultez notre FAQ et nos guides d'assistance. Merci de votre
-                    patience pendant que nous continuons à nous améliorer !
-                </div>
 
-
-
-
-
-                <div class="container mt-5">
-                    <h1 class="text-center">Intégration de Google Sheets avec l'application NetEx</h1>
-                    <p class="lead text-center">Suivez ces étapes pour connecter votre feuille de calcul Google Sheets à
-                        l'application NetEx.</p>
-
-                    <div class="list-group">
-                        <div class="list-group-item">
-                            <h5 class="d-flex align-items-center">
-                                <i class="ti ti-file-text me-2"></i>
-                                <strong>Télécharger le modèle</strong>
-                            </h5>
-                            <p>
-                                Cliquez <a href="../NETEX_API_SHEET_TEMPLATE.csv" download>ici</a> pour télécharger le
-                                modèle requis pour
-                                votre feuille de calcul.
-                            </p>
-                        </div>
-
-                        <div class="list-group-item">
-                            <h5 class="d-flex align-items-center">
-                                <i class="ti ti-upload me-2"></i>
-                                <strong>Importer le modèle</strong>
-                            </h5>
-                            <p>Importez le modèle téléchargé dans Google Sheets.</p>
-                        </div>
-
-                        <div class="list-group-item">
-                            <h5 class="d-flex align-items-center">
-                                <i class="ti ti-user-plus me-2"></i>
-                                <strong>Partager la feuille de calcul</strong>
-                            </h5>
-                            <p>
-                                Partagez la feuille Google Sheets avec l'adresse email suivante :
-                                <strong>netex-739@netex-451319.iam.gserviceaccount.com</strong>
-                            </p>
-                        </div>
-
-                        <div class="list-group-item">
-                            <h5 class="d-flex align-items-center">
-                                <i class="ti ti-link me-2"></i>
-                                <strong>Copier l'ID de la feuille de calcul</strong>
-                            </h5>
-                            <p>
-                                Copiez l'ID de votre feuille de calcul, que vous pouvez trouver dans l'URL du lien.
-                            </p>
-                        </div>
-
-                        <div class="list-group-item">
-                            <h5 class="d-flex align-items-center">
-                                <i class="ti ti-plus me-2"></i>
-                                <strong>Ajouter l'ID de la feuille dans l'application NetEx</strong>
-                            </h5>
-                            <p>
-                                Dans l'application, allez dans le coin supérieur droit, cliquez sur « Mes feuilles de
-                                calcul » et ajoutez l'ID de la feuille de calcul (vous pouvez ajouter plusieurs IDs de
-                                feuilles de calcul).
-                            </p>
-                        </div>
-
-                        <div class="list-group-item">
-                            <h5 class="d-flex align-items-center">
-                                <i class="ti ti-refresh me-2"></i>
-                                <strong>Synchroniser vos données</strong>
-                            </h5>
-                            <p>
-                                Une fois toutes les étapes complétées, allez dans <strong>Leads → Liste des
-                                    Leads</strong> et cliquez sur « Synchroniser les données » pour importer les données
-                                de votre feuille.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-success mt-4" role="alert">
-                        En suivant ces étapes, vos données de Google Sheets seront correctement synchronisées avec
-                        l'application NetEx.
-                    </div>
-                </div>
 
                 <div class="card bg-light-info rounded-2">
                     <div class="card-body text-center">
@@ -198,8 +270,10 @@ mysqli_close($conn);
                             </a>
                         </div>
                         <h3 class="fw-semibold">Avez-vous des problèmes ?</h3>
-                        <p class="fw-normal mb-4 fs-4">Envoyez un message à notre équipe technique, ils peuvent vous aider.</p>
-                        <a href="https://wa.me/31682057991" target="_blank" class="btn btn-primary mb-8">Discutez avec nous via Whatsapp</a>
+                        <p class="fw-normal mb-4 fs-4">Envoyez un message à notre équipe technique, ils peuvent vous
+                            aider.</p>
+                        <a href="https://wa.me/31682057991" target="_blank" class="btn btn-primary mb-8">Discutez avec
+                            nous via Whatsapp</a>
                     </div>
                 </div>
 
@@ -607,7 +681,7 @@ mysqli_close($conn);
 
     <script>
         $(document).ready(function () {
-            $('#tickets_table').DataTable({
+            $('#apis_table').DataTable({
                 "paging": true,
                 "scrollY": true,
                 "searching": true,
@@ -642,15 +716,22 @@ mysqli_close($conn);
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             let deleteButton = document.getElementById("process-selected");
-            deleteButton.style.display = "none"; // Hide button initially
+            let activateButton = document.getElementById("activate-selected");
+            let deactivateButton = document.getElementById("deactivate-selected");
 
-            function updateDeleteButtonVisibility() {
+            deleteButton.style.display = "none";
+            activateButton.style.display = "none";
+            deactivateButton.style.display = "none";
+
+            function updateButtonVisibility() {
                 let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
                 deleteButton.style.display = anyChecked ? "block" : "none";
+                activateButton.style.display = anyChecked ? "block" : "none";
+                deactivateButton.style.display = anyChecked ? "block" : "none";
             }
 
             document.querySelectorAll(".row-select").forEach((checkbox) => {
-                checkbox.addEventListener("change", updateDeleteButtonVisibility);
+                checkbox.addEventListener("change", updateButtonVisibility);
             });
 
             document.getElementById("select-all").addEventListener("change", function () {
@@ -658,9 +739,10 @@ mysqli_close($conn);
                 document.querySelectorAll(".row-select").forEach((checkbox) => {
                     checkbox.checked = isChecked;
                 });
-                updateDeleteButtonVisibility();
+                updateButtonVisibility();
             });
 
+            // Delete button logic
             deleteButton.addEventListener("click", function () {
                 let selectedIds = [];
 
@@ -672,7 +754,7 @@ mysqli_close($conn);
 
                 Swal.fire({
                     title: "Es-tu sûr?",
-                    text: "Vous ne pourrez pas revenir en arrière !",
+                    text: "Vous ne pourrez pas revenir en arrière\u00A0!",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#d33",
@@ -680,7 +762,7 @@ mysqli_close($conn);
                     confirmButtonText: "Oui, supprimez-les !"
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        fetch("deleteTickets.php", {
+                        fetch("deleteAPIs.php", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ ids: selectedIds })
@@ -695,18 +777,18 @@ mysqli_close($conn);
                                     Swal.fire({
                                         icon: "success",
                                         title: "Supprimé!",
-                                        text: "Les tickets sélectionnés ont été supprimés.",
+                                        text: "Les APIs sélectionnés ont été supprimés.",
                                         timer: 2000
                                     }).then(() => {
                                         location.reload(); // Reload page after deletion
                                     });
 
-                                    updateDeleteButtonVisibility(); // Hide button if no rows left
+                                    updateButtonVisibility(); // Hide button if no rows left
                                 } else {
                                     Swal.fire({
                                         icon: "error",
                                         title: "Error",
-                                        text: "Impossible de supprimer certains ou tous les tickets."
+                                        text: "Impossible de supprimer certains ou tous les APIs."
                                     });
                                 }
                             })
@@ -721,9 +803,147 @@ mysqli_close($conn);
                     }
                 });
             });
-        });
 
+            // Activate button logic
+            activateButton.addEventListener("click", function () {
+                bulkToggleStatus("ACTIVE");
+            });
+
+            // Deactivate button logic
+            deactivateButton.addEventListener("click", function () {
+                bulkToggleStatus("INACTIVE");
+            });
+
+            function bulkToggleStatus(newStatus) {
+                let selectedIds = [];
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: `Vous êtes sur le point de ${newStatus.toLowerCase()} les vendeurs sélectionnés.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Oui, continuez !",
+                    cancelButtonText: "Non, annulez !",
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("toggleStatusAPIsBulk.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds, status: newStatus })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Mis à jour !",
+                                        text: "Les APIs sélectionnés ont été mis à jour.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Erreur",
+                                        text: "Impossible de mettre à jour certains ou tous les APIs."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Erreur",
+                                    text: "Une erreur s'est produite !"
+                                });
+                                console.error("Erreur\u00A0:", error);
+                            });
+                    }
+                });
+            }
+
+            // Handle the toggle status button click event
+            document.querySelectorAll('.toggle-status').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const statusId = this.getAttribute('data-id');
+                    const newStatus = this.getAttribute('data-status');
+
+                    // SweetAlert2 confirmation prompt
+                    Swal.fire({
+                        title: 'Es-tu sûr?',
+                        text: `Vous êtes sur le point de ${newStatus.toLowerCase()} cet API.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Oui, continuez !',
+                        cancelButtonText: 'Non, annule!',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect to the PHP script that handles the status change
+                            window.location.href = `toggleStatusAPIs.php?id=${statusId}&status=${newStatus}`;
+                        }
+                    });
+                });
+            });
+        });
     </script>
+
+    <script>
+        // Add event listener for the "Modifier" button
+        document.querySelectorAll('.modify-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const spreadsheetId = this.getAttribute('data-id');
+                const currentId = document.getElementById('spreadsheet-id-' + spreadsheetId).innerText.trim();
+
+                Swal.fire({
+                    title: 'Modifier la clé',
+                    input: 'text',
+                    inputLabel: 'Entrez la nouvelle clé API',
+                    inputValue: currentId,
+                    showCancelButton: true,
+                    confirmButtonText: 'Modifier',
+                    cancelButtonText: 'Annuler',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'la nouvelle clé API ne peut pas être vide';
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Perform AJAX request to update the spreadsheet_id
+                        const newSpreadsheetId = result.value;
+
+                        // AJAX call to update the database
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', 'updateApiKey.php', true);
+                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                        xhr.onreadystatechange = function () {
+                            if (xhr.readyState === 4 && xhr.status === 200) {
+                                const response = JSON.parse(xhr.responseText);
+                                if (response.success) {
+                                    // Update the displayed spreadsheet ID
+                                    document.getElementById('spreadsheet-id-' + spreadsheetId).innerText = newSpreadsheetId;
+                                    Swal.fire('Succès!', 'La clé API a été modifié.', 'success');
+                                } else {
+                                    Swal.fire('Erreur!', 'Une erreur est survenue lors de la mise à jour.', 'error');
+                                }
+                            }
+                        };
+                        xhr.send('id=' + spreadsheetId + '&spreadsheet_id=' + encodeURIComponent(newSpreadsheetId));
+                    }
+                });
+            });
+        });
+    </script>
+
+
 </body>
 
 </html>

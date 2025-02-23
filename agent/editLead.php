@@ -7,7 +7,7 @@ include "checkSession.php";
 include "fetchUserData.php";
 
 $message = "";
-$alertScript = ''; // This will store the SweetAlert script
+$alertScript = '';
 
 $id = $_GET['id'];
 $sql = "SELECT * FROM leads WHERE id='$id' AND agent='$agentName'";
@@ -20,12 +20,11 @@ $statusesDataP = mysqli_query($conn, $sql_);
 $sql_ = "SELECT city FROM cities WHERE status='ACTIVE'";
 $citiesDataP = mysqli_query($conn, $sql_);
 
-$selectedStatus = $leadData['status'];  // Retrieve this from your parcel data
-$selectedCity = $leadData['city'];  // Retrieve this from your parcel data
+$selectedStatus = $leadData['status'];
+$selectedCity = $leadData['city'];
 
-if (isset($_POST['submit'])) { // Form is submitted
+if (isset($_POST['submit'])) {
     $id = $_POST['id'];
-
     $name = $_POST['name'];
     $tracking_id = $_POST['tracking_id'];
     $phone_number = $_POST['phone_number'];
@@ -33,20 +32,15 @@ if (isset($_POST['submit'])) { // Form is submitted
     $city = $_POST['city'];
     $product = $_POST['product'];
     $address = $_POST['address'];
-
     $status = $_POST['status'];
     $comments = $_POST['comments'];
 
-    $sql = "UPDATE leads SET name='$name', tracking_id='$tracking_id',
-phone_number='$phone_number', price='$price', city='$city', product='$product', 
-address='$address', comments='$comments', status='$status' WHERE id='$id'";
+    $sql = "UPDATE leads SET name='$name', tracking_id='$tracking_id', phone_number='$phone_number', price='$price', city='$city', product='$product', address='$address', comments='$comments', status='$status' WHERE id='$id'";
 
     if (mysqli_query($conn, $sql)) {
-        // Trigger API if status is "Rammasser"
         if ($status == 'Rammasser') {
-            $apiResponse = sendApiRequest($leadData);  // Pass the lead data
+            $apiResponse = sendApiRequest($leadData, $conn); // Pass connection
             if ($apiResponse['status'] == 200) {
-                // Mock response success (can add logging or further processing if needed)
                 $message = "API triggered successfully: " . $apiResponse['msg'];
             } else {
                 $message = "API error: " . $apiResponse['msg'];
@@ -70,48 +64,47 @@ address='$address', comments='$comments', status='$status' WHERE id='$id'";
         $message = "<div class='alert alert-danger'>Something went wrong. Please try again!</div>";
     }
 }
+
 $sql_ = "SELECT product_name FROM stock_requests";
 $productData = mysqli_query($conn, $sql_);
+
 // Function to trigger the API
-function sendApiRequest($data)
-{
-    // Mocked data for testing or real API call
-    $isTesting = true;
+function sendApiRequest($data, $conn) {
+    // Get the API token from the database
+    $tokenQuery = "SELECT api_key FROM delivery_companies_api LIMIT 1"; // Assuming only one entry, or modify as needed.
+    $tokenResult = mysqli_query($conn, $tokenQuery);
 
-    if ($isTesting) {
-        // Return mock response
-        return [
-            'status' => 200,
-            'msg' => 'Mock: ajouté avec succès',
-            'tracking' => 'mock_tracking_code'
-        ];
+    if ($tokenResult && $tokenRow = mysqli_fetch_assoc($tokenResult)) {
+        $apiToken = $tokenRow['api_key'];
     } else {
-        $apiEndpoint = 'https://app.coliix.com/aga/seller/api-parcels';
-        $formData = [
-            'action' => 'add',
-            'token' => 'e7d5ac-b37417-9b1ea3-a209cf-407598',
-            'name' => $data['name'],
-            'phone' => $data['phone_number'],
-            'marchandise' => $data['product'],
-            'marchandise_qty' => 1,
-            'ville' => $data['city'],
-            'adresse' => $data['address'],
-            'note' => $data['comments'],
-            'price' => $data['price']
-        ];
+        return ['status' => 500, 'msg' => 'API token not found'];
+    }
 
-        $client = new \GuzzleHttp\Client();
-        try {
-            $response = $client->request('POST', $apiEndpoint, [
-                'headers' => [
-                    'Content-Type' => 'application/formdata',
-                ],
-                'body' => http_build_query($formData),
-            ]);
-            return json_decode($response->getBody()->getContents(), true);
-        } catch (Exception $e) {
-            return ['status' => 500, 'msg' => $e->getMessage()];
-        }
+    $apiEndpoint = 'https://app.coliix.com/aga/seller/api-parcels';
+    $formData = [
+        'action' => 'add',
+        'token' => $apiToken, // Use the retrieved token
+        'name' => $data['name'],
+        'phone' => $data['phone_number'],
+        'marchandise' => $data['product'],
+        'marchandise_qty' => 1,
+        'ville' => $data['city'],
+        'adresse' => $data['address'],
+        'note' => $data['comments'],
+        'price' => $data['price']
+    ];
+
+    $client = new \GuzzleHttp\Client();
+    try {
+        $response = $client->request('POST', $apiEndpoint, [
+            'headers' => [
+                'Content-Type' => 'application/formdata',
+            ],
+            'body' => http_build_query($formData),
+        ]);
+        return json_decode($response->getBody()->getContents(), true);
+    } catch (Exception $e) {
+        return ['status' => 500, 'msg' => $e->getMessage()];
     }
 }
 ?>
