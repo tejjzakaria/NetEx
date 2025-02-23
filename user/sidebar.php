@@ -52,7 +52,8 @@ $is_offers_page = $current_page === 'offers.php';
           <span class="hide-menu">Marketplace</span>
         </li>
         <li class="sidebar-item">
-          <a class="sidebar-link <?php echo $is_offers_page ? 'active' : ''; ?>" href="offers.php?page=1" aria-expanded="false">
+          <a class="sidebar-link <?php echo $is_offers_page ? 'active' : ''; ?>" href="offers.php?page=1"
+            aria-expanded="false">
             <span>
               <i class="ti ti-shopping-cart"></i>
             </span>
@@ -78,9 +79,9 @@ $is_offers_page = $current_page === 'offers.php';
             </span>
             <span class="hide-menu">Mes Colis</span>
           </a>
-          
+
         </li>
-        
+
 
 
         <li class="nav-small-cap">
@@ -120,7 +121,7 @@ $is_offers_page = $current_page === 'offers.php';
                 <span class="hide-menu">Ajouter boutique</span>
               </a>
             </li>
-            
+
           </ul>
         </li>
         <li class="sidebar-item">
@@ -132,7 +133,7 @@ $is_offers_page = $current_page === 'offers.php';
           </a>
         </li>
 
-        
+
 
         <li class="nav-small-cap">
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
@@ -155,7 +156,7 @@ $is_offers_page = $current_page === 'offers.php';
                 <span class="hide-menu">List leads</span>
               </a>
             </li>
-            
+
             <li class="sidebar-item">
               <a href="addLead.php" class="sidebar-link">
                 <div class="round-16 d-flex align-items-center justify-content-center">
@@ -227,25 +228,25 @@ $is_offers_page = $current_page === 'offers.php';
           </a>
         </li>
 
-        <div class="alert alert-warning" style="margin-top: 10px;" role="alert">
-        <strong>Version bêta : </strong>Vous pouvez rencontrer des problèmes techniques.
+        <div class="alert alert-primary mt-6" role="alert">
+          <span class="fs-3 fw-semibold">Gestionnaire de compte: </span>
+          <div class="hstack gap-3 mt-2">
+            <div class="john-title">
+              <h6 class="mb-0 fs-3">Abdellah AIT LHAJ</h6>
+              <span class="mt-1">+212 687-866320</span>
+            </div>
+            <a href="https://wa.me/212687866320" target="_blank">
+              <button class="border-0 bg-transparent text-primary ms-auto" tabindex="0" type="button"
+                aria-label="logout" data-bs-toggle="tooltip" data-bs-placement="wtsp" data-bs-title="logout">
+                <i class="ti ti-brand-whatsapp fs-6"></i>
+              </button>
+            </a>
+          </div>
         </div>
     </nav>
-    <div class="fixed-profile p-3 bg-light-secondary rounded sidebar-ad mt-3">
-      <div class="hstack gap-3">
-        <div class="john-img">
-          <img src="dist/images/profile/user-1.jpg" class="rounded-circle" width="40" height="40" alt="">
-        </div>
-        <div class="john-title">
-          <h6 class="mb-0 fs-4 fw-semibold">Mathew</h6>
-          <span class="fs-2 text-dark">Designer</span>
-        </div>
-        <button class="border-0 bg-transparent text-primary ms-auto" tabindex="0" type="button" aria-label="logout"
-          data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="logout">
-          <i class="ti ti-power fs-6"></i>
-        </button>
-      </div>
-    </div>
+
+
+
     <!-- End Sidebar navigation -->
   </div>
   <!-- End Sidebar scroll-->

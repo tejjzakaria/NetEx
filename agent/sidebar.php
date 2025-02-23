@@ -95,7 +95,7 @@ $newLeads = mysqli_fetch_assoc($result)['new'];
               <span class="hide-menu">Leads</span>
             </div>
             <div class="hide-menu">
-            <span class="hide-menu badge bg-secondary fs-2 py-1 px-2"><?php echo $newLeads ?></span>
+              <span class="hide-menu badge bg-secondary fs-2 py-1 px-2"><?php echo $newLeads ?></span>
             </div>
           </a>
 
@@ -133,25 +133,33 @@ $newLeads = mysqli_fetch_assoc($result)['new'];
           </a>
         </li>
 
-        <div class="alert alert-warning" style="margin-top: 10px;" role="alert">
-          <strong>Version bêta : </strong>Vous pouvez rencontrer des problèmes techniques.
+
+
+
+
+        <div class="alert alert-primary" style="margin-top: 10px; position: absolute; bottom: 0; margin-right: 20px;"
+          role="alert">
+          <span class="fs-3 fw-bold">Gestionnaire de compte: </span>
+          <div class="hstack gap-3 mt-2">
+            
+            <div class="john-title">
+              <h6 class="mb-0 fs-3">Abdellah AIT LHAJ</h6>
+              <span class="mt-1">+212 687-866320</span>
+            </div>
+            <a href="https://wa.me/212687866320" target="_blank">
+              <button class="border-0 bg-transparent text-primary ms-auto" tabindex="0" type="button"
+                aria-label="logout" data-bs-toggle="tooltip" data-bs-placement="wtsp" data-bs-title="logout">
+                <i class="ti ti-brand-whatsapp fs-6"></i>
+              </button>
+            </a>
+          </div>
         </div>
+
+
+
+
     </nav>
-    <div class="fixed-profile p-3 bg-light-secondary rounded sidebar-ad mt-3">
-      <div class="hstack gap-3">
-        <div class="john-img">
-          <img src="dist/images/profile/user-1.jpg" class="rounded-circle" width="40" height="40" alt="">
-        </div>
-        <div class="john-title">
-          <h6 class="mb-0 fs-4 fw-semibold">Mathew</h6>
-          <span class="fs-2 text-dark">Designer</span>
-        </div>
-        <button class="border-0 bg-transparent text-primary ms-auto" tabindex="0" type="button" aria-label="logout"
-          data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="logout">
-          <i class="ti ti-power fs-6"></i>
-        </button>
-      </div>
-    </div>
+
     <!-- End Sidebar navigation -->
   </div>
   <!-- End Sidebar scroll-->
