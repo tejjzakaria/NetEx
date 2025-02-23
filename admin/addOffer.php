@@ -10,6 +10,9 @@ include "fetchUserData.php";
 
 $alertScript = ''; // This will store the SweetAlert script
 
+$sql_ = "SELECT category FROM categories WHERE status='ACTIVE'";
+$categoriesDataP = mysqli_query($conn, $sql_);
+
 $message = '';
 
 if (isset($_POST['submit'])) {
@@ -21,6 +24,10 @@ if (isset($_POST['submit'])) {
     $link = $_POST['link'];
     $offer_quantity = $_POST['offer_quantity'];
     $status = $_POST['status'];
+    $offer_description = $_POST['offer_description'];
+
+    $offer_price_buy = $_POST['offer_price_buy'];
+    $offer_fees = $_POST['offer_fees'];
 
     // Handle the image upload
     $target_dir = "../uploads/";
@@ -35,13 +42,13 @@ if (isset($_POST['submit'])) {
         // Move the uploaded file to the uploads directory
         if (move_uploaded_file($_FILES["f_image"]["tmp_name"], $target_file)) {
             // Prepare the SQL insert statement
-            $sql = "INSERT INTO offers (offer_name, offer_category, offer_price, offer_comission, link, offer_quantity, f_image, status) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO offers (offer_name, offer_category, offer_price, offer_comission, link, offer_quantity, f_image, status, offer_description, offer_price_buy, offer_fees) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             // Prepare the statement
             if ($stmt = $conn->prepare($sql)) {
                 // Bind parameters
-                $stmt->bind_param("ssddsdss", $offer_name, $offer_category, $offer_price, $offer_comission, $link, $offer_quantity, $target_file, $status);
+                $stmt->bind_param("ssddsdsssss", $offer_name, $offer_category, $offer_price, $offer_comission, $link, $offer_quantity, $target_file, $status, $offer_description, $offer_price_buy, $offer_fees);
 
                 // Execute the query
                 if ($stmt->execute()) {
@@ -59,7 +66,7 @@ if (isset($_POST['submit'])) {
             });
         </script>
         ";
-                    
+
                 } else {
                     $message = "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
                 }
@@ -170,17 +177,13 @@ mysqli_close($conn);
                                         <div class="mb-3">
                                             <label for="lastName1">Catégorie*</label>
                                             <select name="offer_category" class="form-control mt-2" required>
-                                                <option value="electronique">Électronique</option>
-                                                <option value="vetements">Vêtements</option>
-                                                <option value="alimentation">Alimentation</option>
-                                                <option value="maison">Maison</option>
-                                                <option value="beaute">Beauté</option>
-                                                <option value="jouets">Jouets</option>
-                                                <option value="livres">Livres</option>
-                                                <option value="sport">Sport</option>
-                                                <option value="automobile">Automobile</option>
-                                                <option value="bijoux">Bijoux</option>
-                                                <option value="autre">Autre</option>
+                                                <option value="" disabled selected>Sélectionnez une option</option>
+                                                <?php
+                                                while ($row = mysqli_fetch_assoc($categoriesDataP)) {
+                                                    $category = htmlspecialchars($row['category']);
+                                                    echo "<option value='$category'>$category</option>";
+                                                }
+                                                ?>
                                             </select>
 
                                         </div>
@@ -189,9 +192,17 @@ mysqli_close($conn);
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="emailAddress1">Prix*</label>
+                                            <label for="emailAddress1">Prix de vente*</label>
                                             <input type="number" class="form-control mt-2" id="emailAddress1"
-                                                name="offer_price" placeholder="Entrer le prix" />
+                                                name="offer_price" placeholder="Entrer le prix de vente" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="emailAddress1">Prix d'achat*</label>
+                                            <input type="number" class="form-control mt-2" id="emailAddress1"
+                                                name="offer_price_buy" placeholder="Entrer le prix d'achat" />
                                         </div>
                                     </div>
 
@@ -199,7 +210,15 @@ mysqli_close($conn);
                                         <div class="mb-3">
                                             <label for="emailAddress1">Commission*</label>
                                             <input type="number" class="form-control mt-2" id="emailAddress1"
-                                                name="offer_comission" placeholder="Entrer le prix" />
+                                                name="offer_comission" placeholder="Entrer la commission" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="emailAddress1">Charges divers*</label>
+                                            <input type="number" class="form-control mt-2" id="emailAddress1"
+                                                name="offer_fees" placeholder="Entrer les charges" />
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -217,7 +236,7 @@ mysqli_close($conn);
                                                 name="offer_quantity" placeholder="Entrer la quantité" />
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="emailAddress1">Image d'offre*</label>
@@ -231,8 +250,17 @@ mysqli_close($conn);
                                             <select name="status" class="form-control mt-2" required>
                                                 <option value="Active">Active</option>
                                                 <option value="Désactiver">Désactiver</option>
-                                                
+
                                             </select>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="lastName1">Description*</label>
+                                            <textarea class="form-control mt-2" name="offer_description"
+                                                placeholder="Entrez un description"></textarea>
 
                                         </div>
                                     </div>

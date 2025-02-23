@@ -234,8 +234,8 @@ mysqli_close($conn);
                                         <label for="" class="form-label fw-semibold">Statut</label>
                                         <select class="form-select" aria-label="Default select example" name="status"
                                             required>
-                                            <option value="VISIBLE">VISIBLE</option>
-                                            <option value="INVISIBLE">INVISIBLE</option>
+                                            <option value="ACTIVE">ACTIVE</option>
+                                            <option value="INACTIVE">INACTIVE</option>
                                         </select>
                                     </div>
 

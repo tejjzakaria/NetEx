@@ -6,116 +6,61 @@ include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-// Time window in seconds (e.g., 5 minutes = 300 seconds)
-$time_window = 300;
-
-// Prepare SQL query to get users and their stores
-$sql = "SELECT user_info.*, 
-               GROUP_CONCAT(user_stores.store_name SEPARATOR '|') AS stores 
-        FROM user_info 
-        LEFT JOIN user_stores ON user_info.id = user_stores.userID 
-        GROUP BY user_info.id 
-        ORDER BY user_info.id DESC";
-
+$sql = "SELECT * FROM categories";
 $result = mysqli_query($conn, $sql);
+
 $table_data = '';
 
-while ($row = mysqli_fetch_assoc($result)) {
-
-    // Check if the user is online (last activity within the last 5 minutes)
-    $is_online = false;
-    if (isset($row['last_activity'])) {
-        $last_activity = strtotime($row['last_activity']);
-        if (time() - $last_activity <= $time_window) {
-            $is_online = true;
-        }
-    }
-
-    // Determine the status class
+while ($row = $result->fetch_assoc()) {
     if ($row['status'] == 'ACTIVE') {
-        $status_class = "badge bg-success fw-semibold fs-2";
+        $status_class = "badge bg-success fw-semibold fs-2 mt-2";
+        $actions = '
+            <a class="mt-2 btn mb-1 btn-warning btn-circle btn-sm d-inline-flex align-items-center justify-content-center toggle-status" 
+               data-id="' . $row['id'] . '" data-status="INACTIVE">
+                <i class="fs-5 ti ti-x"></i>
+            </a>';
     } else if ($row['status'] == 'INACTIVE') {
-        $status_class = "badge bg-danger fw-semibold fs-2";
-    } else {
-        $status_class = "badge bg-primary fw-semibold fs-2";
+        $status_class = "badge bg-danger fw-semibold fs-2 mt-2";
+        $actions = '
+            <a class="mt-2 btn mb-1 btn-success btn-circle btn-sm d-inline-flex align-items-center justify-content-center toggle-status" 
+               data-id="' . $row['id'] . '" data-status="ACTIVE">
+                <i class="fs-5 ti ti-check"></i>
+            </a>';
     }
 
-    // Online status dot
-    $dot_class = $is_online ? 'dot online' : 'dot offline';
-    $dot_color = $is_online ? '#57C1AB' : '#F58B6C';
-    $online_dot = '<span class="' . $dot_class . '" style="background-color: ' . $dot_color . '; margin-right:10px;"></span>';
 
-    // Convert stores into individual span tags
-    $stores = !empty($row['stores']) 
-        ? implode(' ', array_map(fn($store) => '<span class="badge bg-secondary me-1 fs-2 mb-2">' . htmlspecialchars($store) . '</span>', explode('|', $row['stores'])))
-        : '<span class="badge bg-light text-dark fs-2">Aucune boutique</span>';
-
-    // Create the table row with the user details
+    // Build the table data
     $table_data .= '
         <tr>
-            <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
-            <td>
-                <p class="mb-0 fw-normal">' . $row['id'] . '</p>
-            </td>
-            <td>
-
-
-            <div class="d-flex align-items-center">
-                          <img src="dist/images/profile/user-1.png" alt="avatar" class="rounded" width="35" />
-                          <div class="ms-3">
-                            <div class="user-meta-info">
-                              <h6 class="user-name mb-0">' . $online_dot . ' ' . $row['full_name'] . '</h6>
-                              <span class="user-work fs-3">' . $row['username'] . '</span>
-                            </div>
-                          </div>
-            </div>
-
-
-
-
-                
-            </td>
-            <td>
-                <div class="d-flex align-items-center" style="max-width: 400px; word-wrap: break-word; white-space: normal;">
-                    <div class="ms-0">
-                        <h6 class="fs-4 fw-normal mb-0">' . $row['address'] . ',</h6>
-                        <span class="fw-normal">' . $row['city'] . '</span>
-                    </div>
-                </div>
-            </td>
+        <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
             <td>
                 <div class="d-flex align-items-center">
                     <div class="ms-0">
-                        <h6 class="fs-4 mb-0">' . $row['email'] . '</h6>
-                        <span class="fw-normal">' . $row['phone_number'] . '</span>
+                        <h6 class="fs-4 mb-0">' . $row['id'] . '</h6>
+                        <span class="fw-normal">' . $row['created_at'] . '</span>
                     </div>
                 </div>
             </td>
-            <td style="max-width: 400px; word-wrap: break-word; white-space: normal;">
-                ' . $stores . '
+            <td>
+                <span class="btn btn-outline-dark">' . $row['category'] . '</span>
             </td>
+            
             <td>
                 <span class="' . $status_class . '">' . $row['status'] . '</span>
             </td>
             <td>
                 <div class="button-group">
-                    <a class="btn mb-1 btn-primary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="viewUser(' . $row['id'] . ')">
-                        <i class="fs-5 ti ti-eye"></i>
-                    </a>
-                    <a class="btn mb-1 btn-secondary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="editUser.php?id=' . $row['id'] . '">
-                        <i class="fs-5 ti ti-pencil"></i>
-                    </a>
-                    <a class="btn mb-1 btn-danger btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="confirmDelete(' . $row['id'] . ')">
-                        <i class="fs-5 ti ti-trash"></i>
-                    </a>
+                    ' . $actions . '
                 </div>
             </td>
         </tr>
     ';
 }
 
+// Close the connection
 mysqli_close($conn);
 ?>
+
 
 
 
@@ -126,7 +71,7 @@ mysqli_close($conn);
 
 <head>
     <!--  Title -->
-    <title>Admin - Clients</title>
+    <title>Admin - Catégories</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -141,27 +86,6 @@ mysqli_close($conn);
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
     <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
-    <style>
-        /* Green dot for online users */
-        .dot.online {
-            width: 8px;
-            height: 8px;
-            background-color: #56C2AB;
-            border-radius: 50%;
-            display: inline-block;
-            margin-left: 5px;
-        }
-
-        /* Red dot for offline users */
-        .dot.offline {
-            width: 8px;
-            height: 8px;
-            background-color: #F58B6C;
-            border-radius: 50%;
-            display: inline-block;
-            margin-left: 5px;
-        }
-    </style>
 </head>
 
 <body>
@@ -190,11 +114,11 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Clients</h4>
+                                <h4 class="fw-semibold mb-8">Catégories</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="viewUsers.php">List Clients</a>
+                                            <a class="text-muted " href="">List Catégories</a>
                                         </li>
                                         <li class="breadcrumb-item" aria-current="page">Voir Tous</li>
                                     </ol>
@@ -208,7 +132,6 @@ mysqli_close($conn);
                         </div>
                     </div>
                 </div>
-
                 <div class="d-flex align-items-center justify-content-between">
 
                     <div class="d-flex align-items-center">
@@ -220,10 +143,11 @@ mysqli_close($conn);
 
                     </div>
 
-                    <a href="addUser.php"><button class="btn btn-outline-dark mb-3"><i class="ti ti-plus"
+                    <a href="addCategory.php"><button class="btn btn-outline-dark mb-3"><i class="ti ti-plus"
                                 style="margin-right: 6px;"></i>Nouveau</button></a>
 
                 </div>
+
 
 
                 <div class="datatables">
@@ -231,14 +155,20 @@ mysqli_close($conn);
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <button id="process-selected" class="btn btn-danger mb-4"
-                                        style="display: none; transition: all 0.5s ease-in-out;"><i
-                                            class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer les lignes
-                                        sélectionnées</button>
+                                    <div class="d-flex align-items-center">
+                                        <button id="process-selected" class="btn btn-danger mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer la sélection</button>
+                                        <button id="activate-selected" class="btn btn-success mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-check" style="margin-right: 6px;"></i>Activer la sélection</button>
+                                        <button id="deactivate-selected" class="btn btn-warning mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-x" style="margin-right: 6px;"></i>Désactiver la sélection</button>
+                                    </div>
                                     <div class="table-responsive">
-
                                         <table class="table border text-nowrap customize-table mb-0 align-middle"
-                                            id="users_table" >
+                                            id="notifications_table">
                                             <thead class="text-dark fs-4">
                                                 <tr>
                                                     <th>
@@ -249,19 +179,10 @@ mysqli_close($conn);
                                                         <h6 class="fs-4 fw-semibold mb-0">ID</h6>
                                                     </th>
                                                     <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Nom</h6>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Catégorie</h6>
                                                     </th>
                                                     <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Adresse</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Contact</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Boutiques</h6>
-                                                    </th>
-                                                    <th>
-                                                        <h6 class="fs-4 fw-semibold mb-0">Statut</h6>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Status</h6>
                                                     </th>
                                                     <th>
                                                         <h6 class="fs-4 fw-semibold mb-0">Actions</h6>
@@ -269,10 +190,7 @@ mysqli_close($conn);
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php echo $table_data ?>
-
-
-
+                                                <?php echo $table_data; ?>
 
 
 
@@ -285,27 +203,23 @@ mysqli_close($conn);
                         </div>
                     </div>
                 </div>
+
+
+
+
+
+
+
             </div>
-
-
-
-
-
-
-
-
-
         </div>
-    </div>
-    <div class="dark-transparent sidebartoggler"></div>
-    <div class="dark-transparent sidebartoggler"></div>
+        <div class="dark-transparent sidebartoggler"></div>
+        <div class="dark-transparent sidebartoggler"></div>
     </div>
     <!--  Shopping Cart -->
     <div class="offcanvas offcanvas-end shopping-cart" tabindex="-1" id="offcanvasRight"
         aria-labelledby="offcanvasRightLabel">
         <div class="offcanvas-header py-4">
-            <h5 class="offcanvas-title fs-5 fw-semibold" id="offcanvasRightLabel">Shopping Cart
-            </h5>
+            <h5 class="offcanvas-title fs-5 fw-semibold" id="offcanvasRightLabel">Shopping Cart</h5>
             <span class="badge bg-primary rounded-4 px-3 py-1 lh-sm">5 new</span>
         </div>
         <div class="offcanvas-body h-100 px-4 pt-0" data-simplebar>
@@ -394,8 +308,7 @@ mysqli_close($conn);
                         <span class="text-dark fw-semibold fs-3">$6830</span>
                     </div>
                 </div>
-                <a href="./eco-checkout.html" class="btn btn-outline-primary w-100">Go to
-                    shopping cart</a>
+                <a href="./eco-checkout.html" class="btn btn-outline-primary w-100">Go to shopping cart</a>
             </div>
         </div>
     </div>
@@ -426,8 +339,7 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Chat Application</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">New
-                                            messages arrived</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">New messages arrived</span>
                                     </div>
                                 </a>
                             </li>
@@ -440,8 +352,7 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Invoice App</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">Get
-                                            latest invoice</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">Get latest invoice</span>
                                     </div>
                                 </a>
                             </li>
@@ -453,10 +364,8 @@ mysqli_close($conn);
                                             width="24" height="24">
                                     </div>
                                     <div class="d-inline-block">
-                                        <h6 class="mb-1 bg-hover-primary">Contact Application
-                                        </h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">2
-                                            Unsaved Contacts</span>
+                                        <h6 class="mb-1 bg-hover-primary">Contact Application</h6>
+                                        <span class="fs-2 d-block fw-normal text-muted">2 Unsaved Contacts</span>
                                     </div>
                                 </a>
                             </li>
@@ -469,8 +378,7 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Email App</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">Get new
-                                            emails</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">Get new emails</span>
                                     </div>
                                 </a>
                             </li>
@@ -483,8 +391,7 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">User Profile</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">learn
-                                            more information</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">learn more information</span>
                                     </div>
                                 </a>
                             </li>
@@ -497,8 +404,7 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Calendar App</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">Get
-                                            dates</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">Get dates</span>
                                     </div>
                                 </a>
                             </li>
@@ -510,10 +416,8 @@ mysqli_close($conn);
                                             width="24" height="24">
                                     </div>
                                     <div class="d-inline-block">
-                                        <h6 class="mb-1 bg-hover-primary">Contact List Table
-                                        </h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">Add new
-                                            contact</span>
+                                        <h6 class="mb-1 bg-hover-primary">Contact List Table</h6>
+                                        <span class="fs-2 d-block fw-normal text-muted">Add new contact</span>
                                     </div>
                                 </a>
                             </li>
@@ -526,8 +430,7 @@ mysqli_close($conn);
                                     </div>
                                     <div class="d-inline-block">
                                         <h6 class="mb-1 bg-hover-primary">Notes Application</h6>
-                                        <span class="fs-2 d-block fw-normal text-muted">To-do
-                                            and Daily tasks</span>
+                                        <span class="fs-2 d-block fw-normal text-muted">To-do and Daily tasks</span>
                                     </div>
                                 </a>
                             </li>
@@ -539,8 +442,7 @@ mysqli_close($conn);
                                     <a class="fw-semibold text-dark" href="#">Pricing Page</a>
                                 </li>
                                 <li class="sidebar-item py-2">
-                                    <a class="fw-semibold text-dark" href="#">Authentication
-                                        Design</a>
+                                    <a class="fw-semibold text-dark" href="#">Authentication Design</a>
                                 </li>
                                 <li class="sidebar-item py-2">
                                     <a class="fw-semibold text-dark" href="#">Register Now</a>
@@ -552,12 +454,10 @@ mysqli_close($conn);
                                     <a class="fw-semibold text-dark" href="#">Notes App</a>
                                 </li>
                                 <li class="sidebar-item py-2">
-                                    <a class="fw-semibold text-dark" href="#">User
-                                        Application</a>
+                                    <a class="fw-semibold text-dark" href="#">User Application</a>
                                 </li>
                                 <li class="sidebar-item py-2">
-                                    <a class="fw-semibold text-dark" href="#">Account
-                                        Settings</a>
+                                    <a class="fw-semibold text-dark" href="#">Account Settings</a>
                                 </li>
                             </ul>
                         </ul>
@@ -702,18 +602,16 @@ mysqli_close($conn);
     <script src="../../dist/libs/apexcharts/dist/apexcharts.min.js"></script>
     <script src="../../dist/js/widgets-charts.js"></script>
 
+
     <script src="dist/libs/datatables.net/js/jquery.dataTables.min.js"></script>
     <script src="dist/js/datatable/datatable-basic.init.js"></script>
 
     <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="dist/js/forms/sweet-alert.init.js"></script>
 
-
     <script>
         $(document).ready(function () {
-            $('#users_table').DataTable({
-                "scrollX": true,
-                "scrollY": true,
+            $('#notifications_table').DataTable({
                 "language": {
                     "lengthMenu": "Afficher _MENU_ entrées",
                     "zeroRecords": "Aucun enregistrement trouvé",
@@ -730,97 +628,30 @@ mysqli_close($conn);
                 }
             });
         });
+
     </script>
 
-    <script>
-        function confirmDelete(id) {
-            Swal.fire({
-                title: "Es-tu sûr?",
-                text: "Vous ne pourrez pas revenir en arrière !",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Oui, supprime-le !"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Create a form and submit it to deleteLead.php
-                    const form = document.createElement("form");
-                    form.method = "POST";
-                    form.action = "deleteUser.php"; // Use POST method
 
-                    const input = document.createElement("input");
-                    input.type = "hidden";
-                    input.name = "id";
-                    input.value = id; // Set the lead ID
-
-                    form.appendChild(input);
-                    document.body.appendChild(form);
-                    form.submit(); // Submit the form
-                }
-            });
-        }
-
-        function viewUser(id) {
-            // Send AJAX request to fetch lead details
-            fetch("getUserDetails.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: "id=" + id,
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        Swal.fire("Erreur", data.error, "error");
-                    } else {
-                        // Display lead details in SweetAlert
-                        Swal.fire({
-                            title: "Détails du Vendeur",
-                            html: `
-                <div class="details" style="text-align: left; margin: 20px; line-height: 2;">
-                    <div class="row d-flex align-items-center justify-content-between">
-                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-secondary text-secondary">ID: ${data.id}</span></div>
-                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-warning text-warning">${data.created_at}</span></div>
-                        
-
-                    </div>
-                    <strong>Nom:</strong> ${data.full_name} <br>
-                    <strong>CIN:</strong> ${data.cin} <br>
-                    <strong>Adresse:</strong> ${data.address}, ${data.city} <br>
-                    <strong>Email:</strong> ${data.email} <br>
-                    <strong>Telephone:</strong> ${data.phone_number}  <br>
-                    <strong>Banque:</strong> ${data.bank_name}  <br>
-                    <strong>Numéro de compte:</strong> ${data.bank_account}  <br>
-                    <strong>Nom d'utilisateur:</strong> ${data.username}  <br>
-                    <strong>Statut:</strong> <span class="${data.status_class}">${data.status}</span><br>
-                </div>
-                `,
-                            icon: "info",
-                            confirmButtonText: "Fermer"
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error("Erreur:", error);
-                    Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
-                });
-        }
-    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             let deleteButton = document.getElementById("process-selected");
-            deleteButton.style.display = "none"; // Hide button initially
+            let activateButton = document.getElementById("activate-selected");
+            let deactivateButton = document.getElementById("deactivate-selected");
 
-            function updateDeleteButtonVisibility() {
+            deleteButton.style.display = "none";
+            activateButton.style.display = "none";
+            deactivateButton.style.display = "none";
+
+            function updateButtonVisibility() {
                 let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
                 deleteButton.style.display = anyChecked ? "block" : "none";
+                activateButton.style.display = anyChecked ? "block" : "none";
+                deactivateButton.style.display = anyChecked ? "block" : "none";
             }
 
             document.querySelectorAll(".row-select").forEach((checkbox) => {
-                checkbox.addEventListener("change", updateDeleteButtonVisibility);
+                checkbox.addEventListener("change", updateButtonVisibility);
             });
 
             document.getElementById("select-all").addEventListener("change", function () {
@@ -828,9 +659,10 @@ mysqli_close($conn);
                 document.querySelectorAll(".row-select").forEach((checkbox) => {
                     checkbox.checked = isChecked;
                 });
-                updateDeleteButtonVisibility();
+                updateButtonVisibility();
             });
 
+            // Delete button logic
             deleteButton.addEventListener("click", function () {
                 let selectedIds = [];
 
@@ -842,7 +674,7 @@ mysqli_close($conn);
 
                 Swal.fire({
                     title: "Es-tu sûr?",
-                    text: "Vous ne pourrez pas revenir en arrière !",
+                    text: "Vous ne pourrez pas revenir en arrière\u00A0!",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#d33",
@@ -850,7 +682,7 @@ mysqli_close($conn);
                     confirmButtonText: "Oui, supprimez-les !"
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        fetch("deleteUsers.php", {
+                        fetch("deleteCategories.php", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ ids: selectedIds })
@@ -865,18 +697,18 @@ mysqli_close($conn);
                                     Swal.fire({
                                         icon: "success",
                                         title: "Supprimé!",
-                                        text: "Les vendeurs sélectionnés ont été supprimés.",
+                                        text: "Les catégories sélectionnés ont été supprimés.",
                                         timer: 2000
                                     }).then(() => {
                                         location.reload(); // Reload page after deletion
                                     });
 
-                                    updateDeleteButtonVisibility(); // Hide button if no rows left
+                                    updateButtonVisibility(); // Hide button if no rows left
                                 } else {
                                     Swal.fire({
                                         icon: "error",
                                         title: "Error",
-                                        text: "Impossible de supprimer certains ou tous les vendeurs."
+                                        text: "Impossible de supprimer certains ou tous les catégories."
                                     });
                                 }
                             })
@@ -891,8 +723,96 @@ mysqli_close($conn);
                     }
                 });
             });
-        });
 
+            // Activate button logic
+            activateButton.addEventListener("click", function () {
+                bulkToggleStatus("ACTIVE");
+            });
+
+            // Deactivate button logic
+            deactivateButton.addEventListener("click", function () {
+                bulkToggleStatus("INACTIVE");
+            });
+
+            function bulkToggleStatus(newStatus) {
+                let selectedIds = [];
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: `Vous êtes sur le point de ${newStatus.toLowerCase()} les catégories sélectionnés.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Oui, continuez !",
+                    cancelButtonText: "Non, annulez !",
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("toggleStatusCategoriesBulk.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds, status: newStatus })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Mis à jour !",
+                                        text: "Les catégories sélectionnés ont été mis à jour.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Erreur",
+                                        text: "Impossible de mettre à jour certains ou tous les catégories."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Erreur",
+                                    text: "Une erreur s'est produite !"
+                                });
+                                console.error("Erreur\u00A0:", error);
+                            });
+                    }
+                });
+            }
+
+            // Handle the toggle status button click event
+            document.querySelectorAll('.toggle-status').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const statusId = this.getAttribute('data-id');
+                    const newStatus = this.getAttribute('data-status');
+
+                    // SweetAlert2 confirmation prompt
+                    Swal.fire({
+                        title: 'Es-tu sûr?',
+                        text: `Vous êtes sur le point de ${newStatus.toLowerCase()} cette catégorie.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Oui, continuez !',
+                        cancelButtonText: 'Non, annule!',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect to the PHP script that handles the status change
+                            window.location.href = `toggleStatusCategories.php?id=${statusId}&status=${newStatus}`;
+                        }
+                    });
+                });
+            });
+        });
     </script>
 
 

@@ -194,7 +194,7 @@ mysqli_close($conn);
                                                 $city = htmlspecialchars($row['city']);
                                                 echo "<option value='$city'>$city</option>";
                                             }
-                                            ?>
+                                            ?> 
                                         </select>
                                     </div>
 

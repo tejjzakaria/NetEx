@@ -49,11 +49,14 @@ while ($row = mysqli_fetch_assoc($result)) {
             </td>
             <td>
                 <div class="d-flex align-items-center">
-                    <div class="ms-0">
-                        <h6 class="fs-4 fw-semibold mb-0">' . $online_dot . ' ' . $row['full_name'] . '</h6>
-                        <span class="fw-normal">' . $row['username'] . '</span>
-                    </div>
-                </div>
+                          <img src="dist/images/profile/user-1.png" alt="avatar" class="rounded" width="35" />
+                          <div class="ms-3">
+                            <div class="user-meta-info">
+                              <h6 class="user-name mb-0">' . $online_dot . ' ' . $row['full_name'] . '</h6>
+                              <span class="user-work fs-3">' . $row['username'] . '</span>
+                            </div>
+                          </div>
+            </div>
             </td>
             <td>
                 <p class="mb-0 fw-normal">' . $row['city'] . '</p>

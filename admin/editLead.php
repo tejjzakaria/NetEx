@@ -176,7 +176,7 @@ mysqli_close($conn);
                                         <label for="" class="form-label fw-semibold">Ville</label>
                                         <select class="form-select" aria-label="Default select example" name="city"
                                             required>
-                                            <?php
+                                            <?php 
                                             // Loop through the users and create options
                                             while ($row = mysqli_fetch_assoc($citiesDataP)) {
                                                 $city = htmlspecialchars($row['city']);  // Optional, display full_name

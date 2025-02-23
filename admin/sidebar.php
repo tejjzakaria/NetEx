@@ -403,6 +403,12 @@
           </ul>
         </li>
 
+
+        <li class="nav-small-cap">
+          <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+          <span class="hide-menu">Données dynamiques</span>
+        </li>
+
         <li class="sidebar-item">
           <a class="sidebar-link has-arrow" href="#" aria-expanded="false">
             <span class="d-flex">
@@ -453,6 +459,34 @@
                   <i class="ti ti-circle"></i>
                 </div>
                 <span class="hide-menu">Ajouter Ville</span>
+              </a>
+            </li>
+
+          </ul>
+        </li>
+
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow" href="#" aria-expanded="false">
+            <span class="d-flex">
+              <i class="ti ti-category"></i>
+            </span>
+            <span class="hide-menu">Catégories</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="viewCategories.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">List Catégories</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="addCategory.php" class="sidebar-link">
+                <div class="round-16 d-flex align-items-center justify-content-center">
+                  <i class="ti ti-circle"></i>
+                </div>
+                <span class="hide-menu">Ajouter Catégorie</span>
               </a>
             </li>
 

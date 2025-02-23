@@ -20,7 +20,7 @@ $offset = ($page - 1) * $records_per_page;
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 
 // Modify the total count query to include search filtering
-$total_query = "SELECT COUNT(*) as total FROM suppliers WHERE (name LIKE '%$search%' OR country LIKE '%$search%') AND status = 'VISIBLE'";
+$total_query = "SELECT COUNT(*) as total FROM suppliers WHERE (name LIKE '%$search%' OR country LIKE '%$search%') AND status = 'ACTIVE'";
 
 $total_result = mysqli_query($conn, $total_query);
 $total_row = mysqli_fetch_assoc($total_result);
@@ -30,7 +30,7 @@ $total_suppliers = $total_row['total'];
 $total_pages = ceil($total_suppliers / $records_per_page);
 
 // Modify the main query to include search filtering
-$sql = "SELECT * FROM suppliers WHERE (name LIKE '%$search%' OR country LIKE '%$search%') AND status = 'VISIBLE' ORDER BY id DESC LIMIT $records_per_page OFFSET $offset";
+$sql = "SELECT * FROM suppliers WHERE (name LIKE '%$search%' OR country LIKE '%$search%') AND status = 'ACTIVE' ORDER BY id DESC LIMIT $records_per_page OFFSET $offset";
 
 $result = mysqli_query($conn, $sql);
 
@@ -38,9 +38,9 @@ $table_data = '';
 while ($row = mysqli_fetch_assoc($result)) {
 
     $supplier_class = "";
-    if ($row['status'] == "VISIBLE" or $row['status'] == "active") {
+    if ($row['status'] == "ACTIVE" or $row['status'] == "active") {
         $supplier_class = "mb-1 badge bg-success";
-    } else if ($row['status'] == "INVISIBLE") {
+    } else if ($row['status'] == "INACTIVE") {
         $supplier_class = "mb-1 badge bg-danger";
     }
 

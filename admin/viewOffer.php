@@ -165,6 +165,7 @@ if (isset($_POST['submit'])) {
                                     class="badge text-bg-secondary fs-2 fw-semibold mb-3"><?php echo $offerData['offer_category'] ?></span>
                             </div>
                             <h4 class="fw-semibold mb-3 fs-10"><?php echo $offerData['offer_name'] ?></h4>
+                            
                             <h4 class="fw-semibold fs-8 mb-3"><?php echo $offerData['offer_price'] ?> Dhs</h4>
 
                             <form method="POST">

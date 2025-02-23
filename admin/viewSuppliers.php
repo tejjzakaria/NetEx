@@ -2,117 +2,83 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Connect to the database
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-// Number of records per page
-$records_per_page = 6;
 
-// Get the current page from URL parameters, default is 1
-$page = isset($_GET['page']) && is_numeric($_GET['page']) ? $_GET['page'] : 1;
 
-// Calculate the offset for the SQL query
-$offset = ($page - 1) * $records_per_page;
-
-// Get the search term from the form if provided
-$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
-
-// Modify the total count query to include search filtering
-$total_query = "SELECT COUNT(*) as total FROM suppliers WHERE name LIKE '%$search%' OR country LIKE '%$search%'";
-$total_result = mysqli_query($conn, $total_query);
-$total_row = mysqli_fetch_assoc($total_result);
-$total_suppliers = $total_row['total'];
-
-// Calculate total pages
-$total_pages = ceil($total_suppliers / $records_per_page);
-
-// Modify the main query to include search filtering
-$sql = "SELECT * FROM suppliers WHERE name LIKE '%$search%' OR country LIKE '%$search%' ORDER BY id DESC LIMIT $records_per_page OFFSET $offset";
+// Prepare SQL query to get agents, ordered by id (latest first)
+$sql = "SELECT * FROM suppliers ORDER BY id DESC";
 $result = mysqli_query($conn, $sql);
 
 $table_data = '';
-while ($row = mysqli_fetch_assoc($result)) {
 
-    $supplier_class = "";
-    if ($row['status'] == "VISIBLE" or $row['status'] == "active") {
-        $supplier_class = "mb-1 badge bg-success";
-    } else if ($row['status'] == "INVISIBLE") {
-        $supplier_class = "mb-1 badge bg-danger";
+while ($row = mysqli_fetch_assoc($result)) {
+    
+   
+
+    // Determine the status class
+    if ($row['status'] == 'ACTIVE') {
+        $status_class = "badge bg-success fw-semibold fs-2";
+    } else if ($row['status'] == 'INACTIVE') {
+        $status_class = "badge bg-danger fw-semibold fs-2";
+    } else {
+        $status_class = "badge bg-primary fw-semibold fs-2";
     }
 
+    // Create the table row with the agent details
     $table_data .= '
-        <div class="col-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex flex-row">
-                        <div class="">
-                            <img src="' . $row['logo'] . '" alt="user" class="rounded-circle" width="100" />
-                        </div>
-                        <div class="ps-3">
-                            <h3 class="font-weight-medium fs-14">' . $row['name'] . '</h3>
-                            <h6>' . $row['email'] . '</h6>
-                            <button class="btn btn-secondary">
-                                <i class="ti ti-phone"></i> ' . $row['phone'] . '
-                            </button>
-                        </div>
-                    </div>
-                    <div class="row mt-5">
-                        <div class="col border-end text-center">
-                            <h2 class="fs-7">' . $row['country'] . '</h2>
-                            <h6 class="mb-0">Pays</h6>
-                        </div>
-                        <div class="col border-end text-center">
-                            <h2 class="fs-7">' . $row['city'] . '</h2>
-                            <h6 class="mb-0">Ville</h6>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <hr />
-                </div>
-                <div class="card-body mb-0 p-0">
-                    <p class="text-center aboutscroll">
-                    <strong>Adresse: </strong>
-                        ' . $row['address'] . '
-                    </p>
-                </div>
-                <div class="d-flex align-items-center justify-content-center mb-4">
-                    <span class="' . $supplier_class . '">' . $row["status"] . '</span>
-                </div>
-
-                <div class="d-flex align-items-center justify-content-center mb-4">
-                    <a href="editSupplier.php?id=' . $row['id'] . '" class="btn btn-light-secondary text-secondary px-2 d-flex align-items-center" style="margin-right: 20px;"><i class="ti ti-pencil fs-6" style="margin-right: 15px;"></i>   Modifier</a>
-                    <a href="#" onclick="confirmDelete(' . $row['id'] . ')" class="btn btn-light-danger text-danger px-2 d-flex align-items-center" ><i class="ti ti-trash fs-6" style="margin-right: 15px;"></i> Supprimer</a>
-                </div>
+        <tr>
+            <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
+            <td>
+                <p class="mb-0 fw-normal">' . $row['id'] . '</p>
+            </td>
+            <td>
+                <div class="d-flex align-items-center">
+                          <img src="' . $row['logo'] . '" alt="avatar" class="rounded" width="35" height="35"/>
+                          <div class="ms-3">
+                            <div class="user-meta-info">
+                              <h6 class="user-name mb-0">' . $row['name'] . '</h6>
+                            </div>
+                          </div>
             </div>
-        </div>
+            </td>
+            <td>
+                <p class="mb-0 fw-normal">' . $row['contact_person'] . '</p>
+            </td>
+            <td>
+                <div class="ms-3">
+                            <div class="user-meta-info">
+                              <h6 class="user-name mb-0">' . $row['phone'] . '</h6>
+                              <span class="user-work fs-3">' . $row['email'] . '</span>
+                            </div>
+                          </div>
+            </td>
+            <td>
+                <div class="ms-3">
+                            <div class="user-meta-info">
+                              <h6 class="user-name mb-0">' . $row['address'] . '</h6>
+                              <span class="user-work fs-3">' . $row['city'] . ', ' . $row['country'] . '</span>
+                            </div>
+                          </div>
+            </td>
+            <td>
+                <span class="' . $status_class . '">' . $row['status'] . '</span>
+            </td>
+            <td>
+                <div class="button-group">
+                    <a class="btn mb-1 btn-secondary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="editSupplier.php?id=' . $row['id'] . '">
+                        <i class="fs-5 ti ti-pencil"></i>
+                    </a>
+                    <a class="btn mb-1 btn-danger btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="confirmDelete(' . $row['id'] . ')">
+                        <i class="fs-5 ti ti-trash"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
     ';
 }
-
-// Pagination HTML
-$pagination = '<nav aria-label="..."><ul class="pagination justify-content-center mb-0 mt-4">';
-
-// Previous button
-if ($page > 1) {
-    $prev_page = $page - 1;
-    $pagination .= '<li class="page-item"><a class="page-link border-0 rounded-circle text-dark round-32 d-flex align-items-center justify-content-center" href="?search=' . urlencode($search) . '&page=' . $prev_page . '"><i class="ti ti-chevron-left"></i></a></li>';
-}
-
-// Page links
-for ($i = 1; $i <= $total_pages; $i++) {
-    $active_class = $i == $page ? 'active' : '';
-    $pagination .= '<li class="page-item ' . $active_class . '"><a class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center" href="?search=' . urlencode($search) . '&page=' . $i . '">' . $i . '</a></li>';
-}
-
-// Next button
-if ($page < $total_pages) {
-    $next_page = $page + 1;
-    $pagination .= '<li class="page-item"><a class="page-link border-0 rounded-circle text-dark round-32 d-flex align-items-center justify-content-center" href="?search=' . urlencode($search) . '&page=' . $next_page . '"><i class="ti ti-chevron-right"></i></a></li>';
-}
-
-$pagination .= '</ul></nav>';
 
 mysqli_close($conn);
 ?>
@@ -204,20 +170,74 @@ mysqli_close($conn);
 
                 </div>
 
-                <form method="GET">
-                    <div class="input-group mb-3">
-                        <input type="text" name="search" class="form-control"
-                            placeholder="Rechercher par nom ou pays..."
-                            value="<?php echo isset($_GET['search']) ? $_GET['search'] : ''; ?>">
-                        <button class="btn btn-primary" type="submit">Rechercher</button>
+                
+
+                <div class="datatables">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                        <button id="process-selected" class="btn btn-danger mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer la sélection</button>
+                                        <button id="activate-selected" class="btn btn-success mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-check" style="margin-right: 6px;"></i>Activer la sélection</button>
+                                        <button id="deactivate-selected" class="btn btn-warning mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-x" style="margin-right: 6px;"></i>Désactiver la sélection</button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table border text-nowrap customize-table mb-0 align-middle"
+                                            id="suppliers_table">
+                                            <thead class="text-dark fs-4">
+                                                <tr>
+                                                    <th>
+                                                        <input type="checkbox" id="select-all"
+                                                            class="form-check-input contact-chkbox primary">
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">ID</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Nom</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Personne de contact</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">N° de téléphone</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Adresse</h6>
+                                                    </th>
+                                                    
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Statut</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Actions</h6>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php echo $table_data ?>
+
+
+
+
+
+
+                                            </tbody>
+                                        </table>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </form>
-
-                <div class="row">
-                    <?php echo $table_data; ?>
                 </div>
-
-                <?php echo $pagination; ?>
 
 
 
@@ -618,7 +638,30 @@ mysqli_close($conn);
     <script src="dist/js/widgets-charts.js"></script>
 
     <script src="dist/libs/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="dist/js/datatable/datatable-api.init.js"></script>
+    <script src="dist/js/datatable/datatable-basic.init.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#suppliers_table').DataTable({
+                "scrollX": true,
+                "scrollY": true,
+                "language": {
+                    "lengthMenu": "Afficher _MENU_ entrées",
+                    "zeroRecords": "Aucun enregistrement trouvé",
+                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                    "infoEmpty": "Aucune entrée disponible",
+                    "infoFiltered": "(filtré de _MAX_ entrées au total)",
+                    "search": "Rechercher:",
+                    "paginate": {
+                        "first": "Premier",
+                        "last": "Dernier",
+                        "next": "Suivant",
+                        "previous": "Précédent"
+                    }
+                }
+            });
+        });
+    </script>
 
     <script>
         function confirmDelete(id) {
@@ -654,6 +697,188 @@ mysqli_close($conn);
 
     <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="dist/js/forms/sweet-alert.init.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let deleteButton = document.getElementById("process-selected");
+            let activateButton = document.getElementById("activate-selected");
+            let deactivateButton = document.getElementById("deactivate-selected");
+
+            deleteButton.style.display = "none";
+            activateButton.style.display = "none";
+            deactivateButton.style.display = "none";
+
+            function updateButtonVisibility() {
+                let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
+                deleteButton.style.display = anyChecked ? "block" : "none";
+                activateButton.style.display = anyChecked ? "block" : "none";
+                deactivateButton.style.display = anyChecked ? "block" : "none";
+            }
+
+            document.querySelectorAll(".row-select").forEach((checkbox) => {
+                checkbox.addEventListener("change", updateButtonVisibility);
+            });
+
+            document.getElementById("select-all").addEventListener("change", function () {
+                let isChecked = this.checked;
+                document.querySelectorAll(".row-select").forEach((checkbox) => {
+                    checkbox.checked = isChecked;
+                });
+                updateButtonVisibility();
+            });
+
+            // Delete button logic
+            deleteButton.addEventListener("click", function () {
+                let selectedIds = [];
+
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: "Vous ne pourrez pas revenir en arrière\u00A0!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Oui, supprimez-les !"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("deleteSuppliers.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    selectedIds.forEach(id => {
+                                        document.querySelector(`.row-select[value="${id}"]`).closest("tr").remove();
+                                    });
+
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Supprimé!",
+                                        text: "Les fournisseurs sélectionnés ont été supprimés.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload(); // Reload page after deletion
+                                    });
+
+                                    updateButtonVisibility(); // Hide button if no rows left
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: "Impossible de supprimer certains ou tous les fournisseurs."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "Something went wrong!"
+                                });
+                                console.error("Error:", error);
+                            });
+                    }
+                });
+            });
+
+            // Activate button logic
+            activateButton.addEventListener("click", function () {
+                bulkToggleStatus("ACTIVE");
+            });
+
+            // Deactivate button logic
+            deactivateButton.addEventListener("click", function () {
+                bulkToggleStatus("INACTIVE");
+            });
+
+            function bulkToggleStatus(newStatus) {
+                let selectedIds = [];
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: `Vous êtes sur le point de ${newStatus.toLowerCase()} les offres sélectionnés.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Oui, continuez !",
+                    cancelButtonText: "Non, annulez !",
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("toggleStatusSuppliersBulk.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds, status: newStatus })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Mis à jour !",
+                                        text: "Les fournisseurs sélectionnés ont été mis à jour.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Erreur",
+                                        text: "Impossible de mettre à jour certains ou tous les fournisseurs."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Erreur",
+                                    text: "Une erreur s'est produite !"
+                                });
+                                console.error("Erreur\u00A0:", error);
+                            });
+                    }
+                });
+            }
+
+            // Handle the toggle status button click event
+            document.querySelectorAll('.toggle-status').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const statusId = this.getAttribute('data-id');
+                    const newStatus = this.getAttribute('data-status');
+
+                    // SweetAlert2 confirmation prompt
+                    Swal.fire({
+                        title: 'Es-tu sûr?',
+                        text: `Vous êtes sur le point de ${newStatus.toLowerCase()} ce fournisseur.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Oui, continuez !',
+                        cancelButtonText: 'Non, annule!',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect to the PHP script that handles the status change
+                            window.location.href = `toggleStatusSuppliers.php?id=${statusId}&status=${newStatus}`;
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 
 </body>
 

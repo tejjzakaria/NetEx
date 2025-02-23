@@ -71,7 +71,7 @@ mysqli_close($conn);
 
 <head>
     <!--  Title -->
-    <title>Admin - Statuts</title>
+    <title>Admin - Villes</title>
     <!--  Required Meta Tag -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -114,11 +114,11 @@ mysqli_close($conn);
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Statuts</h4>
+                                <h4 class="fw-semibold mb-8">Villes</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
-                                            <a class="text-muted " href="">List Statuts</a>
+                                            <a class="text-muted " href="">List Villes</a>
                                         </li>
                                         <li class="breadcrumb-item" aria-current="page">Voir Tous</li>
                                     </ol>

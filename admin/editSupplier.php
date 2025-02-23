@@ -244,7 +244,7 @@ mysqli_close($conn);
                                 <div class="col-lg-6">
                                     <div class="mb-4">
                                         <label for="exampleInputPassword1" class="form-label fw-semibold">Ville</label>
-                                        <input type="text" class="form-control" id="exampleInputtext"
+                                        <input type="text" class="form-control mt-2" id="exampleInputtext"
                                             placeholder="Entrer la ville" name="city" value="<?php echo $supplierData["city"]?>">
                                     </div>
 
@@ -264,8 +264,8 @@ mysqli_close($conn);
                                         <label for="" class="form-label fw-semibold">Statut</label>
                                         <select class="form-select" aria-label="Default select example" name="status"
                                             required>
-                                            <option value="VISIBLE" <?= ($supplierData['status'] == 'VISIBLE') ? 'selected' : '' ?>>VISIBLE</option>
-        <option value="INVISIBLE" <?= ($supplierData['status'] == 'INVISIBLE') ? 'selected' : '' ?>>INVISIBLE</option>
+                                            <option value="ACTIVE" <?= ($supplierData['status'] == 'ACTIVE') ? 'selected' : '' ?>>ACTIVE</option>
+        <option value="INACTIVE" <?= ($supplierData['status'] == 'INACTIVE') ? 'selected' : '' ?>>INACTIVE</option>
                                         </select>
                                     </div>
 

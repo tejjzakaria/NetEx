@@ -11,6 +11,12 @@ include "fetchUserData.php";
 $alertScript = ''; // This will store the SweetAlert script
 $message = '';
 
+$sql_ = "SELECT category FROM categories WHERE status='ACTIVE'";
+$categoriesDataP = mysqli_query($conn, $sql_);
+
+
+
+
 if (isset($_GET['id'])) {
     // Get the offer ID from the URL
     $offer_id = $_GET['id'];
@@ -39,6 +45,7 @@ if (isset($_POST['submit'])) {
     $offer_id = $_POST['id'];  // Hidden field to pass the offer ID
 
     $status = $_POST['status'];
+    $offer_description = $_POST['offer_description'];
 
     // Handle the image upload (optional)
     $target_dir = "../uploads/";
@@ -63,17 +70,17 @@ if (isset($_POST['submit'])) {
     // Build the SQL query conditionally
     if ($image_uploaded) {
         // If an image was uploaded, include it in the update
-        $sql = "UPDATE offers SET offer_name=?, offer_category=?, offer_price=?, offer_comission=?, link=?, offer_quantity=?, f_image=?, status=? WHERE id=?";
+        $sql = "UPDATE offers SET offer_name=?, offer_category=?, offer_price=?, offer_comission=?, link=?, offer_quantity=?, f_image=?, status=?, offer_description=? WHERE id=?";
         // Bind parameters including the image
         if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("ssddsdssi", $offer_name, $offer_category, $offer_price, $offer_comission, $link, $offer_quantity, $target_file, $status, $offer_id);
+            $stmt->bind_param("ssddsdsssi", $offer_name, $offer_category, $offer_price, $offer_comission, $link, $offer_quantity, $target_file, $status, $offer_description, $offer_id);
         }
     } else {
         // If no image was uploaded, do not update the f_image column
-        $sql = "UPDATE offers SET offer_name=?, offer_category=?, offer_price=?, offer_comission=?, link=?, offer_quantity=?, status=? WHERE id=?";
+        $sql = "UPDATE offers SET offer_name=?, offer_category=?, offer_price=?, offer_comission=?, link=?, offer_quantity=?, status=?, offer_description=? WHERE id=?";
         // Bind parameters without the image
         if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("ssddsssi", $offer_name, $offer_category, $offer_price, $offer_comission, $link, $offer_quantity, $status, $offer_id);
+            $stmt->bind_param("ssddssssi", $offer_name, $offer_category, $offer_price, $offer_comission, $link, $offer_quantity, $status, $offer_description, $offer_id);
         }
     }
 
@@ -196,16 +203,20 @@ mysqli_close($conn);
                                         <div class="mb-3">
                                             <label for="lastName1">Catégorie*</label>
                                             <select name="offer_category" class="form-control mt-2" required>
-                                                <option value="Electronique" <?php echo ($offerData['offer_category'] == 'Electronique') ? 'selected' : ''; ?>>Electronique</option>
-                                                <option value="Vêtements" <?php echo ($offerData['offer_category'] == 'Vêtements') ? 'selected' : ''; ?>>Vêtements</option>
-                                                <option value="Maison" <?php echo ($offerData['offer_category'] == 'Maison') ? 'selected' : ''; ?>>Maison</option>
-                                                <option value="Beauté" <?php echo ($offerData['offer_category'] == 'Beauté') ? 'selected' : ''; ?>>Beauté</option>
-                                                <option value="Jouets" <?php echo ($offerData['offer_category'] == 'Jouets') ? 'selected' : ''; ?>>Jouets</option>
-                                                <option value="Livres" <?php echo ($offerData['offer_category'] == 'Livres') ? 'selected' : ''; ?>>Livres</option>
-                                                <option value="Sport" <?php echo ($offerData['offer_category'] == 'Sport') ? 'selected' : ''; ?>>Sport</option>
-                                                <option value="Automobile" <?php echo ($offerData['offer_category'] == 'Automobile') ? 'selected' : ''; ?>>Automobile</option>
-                                                <option value="Bijoux" <?php echo ($offerData['offer_category'] == 'Bijoux') ? 'selected' : ''; ?>>Bijoux</option>
-                                                <option value="Autre" <?php echo ($offerData['offer_category'] == 'Autre') ? 'selected' : ''; ?>>Autre</option>
+                                            
+                                            <?php
+                                            // Loop through the users and create options
+                                            $selectedCategory = $offerData['offer_category'];  // Retrieve this from your parcel data
+                                            while ($row = mysqli_fetch_assoc($categoriesDataP)) {
+                                                $category = htmlspecialchars($row['category']);  // Optional, display full_name
+                                                
+                                                // Check if this user is the one associated with the parcel
+                                                $selected = ($category == $selectedCategory) ? 'selected' : '';
+
+                                                // Output the option with the selected attribute if it's the current user
+                                                echo "<option value='$category' $selected>$category</option>";
+                                            }
+                                            ?>
                                                 
                                             </select>
 
@@ -263,6 +274,14 @@ mysqli_close($conn);
                                                 <option value="Désactiver" <?php echo ($offerData['status'] == 'Désactiver') ? 'selected' : ''; ?>>Désactiver</option>
                                                 
                                             </select>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="lastName1">Description*</label>
+                                            <textarea class="form-control mt-2" name="offer_description" placeholder="Entrez un description"><?php echo $offerData['offer_description']?></textarea>
 
                                         </div>
                                     </div>

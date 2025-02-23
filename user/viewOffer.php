@@ -25,6 +25,8 @@ if (isset($_POST['submit'])) {
     $product_price = $_POST['product_price'];
     $product_comission = $_POST['product_comission'];
 
+    $status = "EN ATTENTE";
+
     // Get the userID from the session
     $userID = $_SESSION['userID'];
 
@@ -49,9 +51,9 @@ if (isset($_POST['submit'])) {
                 mysqli_stmt_close($stmt_update);
 
                 // Insert the request into stock_requests table
-                $sql_insert = "INSERT INTO stock_requests (product_name, quantity, product_category, product_price, product_comission, userID) VALUES (?, ?, ?, ?, ?, ?)";
+                $sql_insert = "INSERT INTO stock_requests (product_name, quantity, product_category, product_price, product_comission, userID, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
                 if ($stmt_insert = mysqli_prepare($conn, $sql_insert)) {
-                    mysqli_stmt_bind_param($stmt_insert, "sssssi", $product_name, $quantityRequested, $product_category, $product_price, $product_comission, $userID);
+                    mysqli_stmt_bind_param($stmt_insert, "sssssis", $product_name, $quantityRequested, $product_category, $product_price, $product_comission, $userID, $status);
                     if (mysqli_stmt_execute($stmt_insert)) {
                         // Redirect to viewProducts.php on successful insertion
                         $alertScript = "
@@ -178,7 +180,27 @@ if (isset($_POST['submit'])) {
                                     class="badge text-bg-secondary fs-2 fw-semibold mb-3"><?php echo $offerData['offer_category'] ?></span>
                             </div>
                             <h4 class="fw-semibold mb-3 fs-10"><?php echo $offerData['offer_name'] ?></h4>
-                            <h4 class="fw-semibold fs-8 mb-3"><?php echo $offerData['offer_price'] ?> Dhs</h4>
+                            <p class="mb-3"><?php echo $offerData['offer_description'] ?></p>
+                            <div class="d-flex align-items-center gap-3">
+                                <span
+                                    class="badge bg-light-primary text-primary fs-6 gap-2 d-inline-flex align-items-center mb-3"
+                                    style="vertical-align: middle;"> Prix de vente:
+                                    <?php echo $offerData['offer_price'] ?> Dhs
+                                </span>
+                                <span
+                                    class="badge bg-light-primary text-primary fs-6 gap-2 d-inline-flex align-items-center mb-3"
+                                    style="vertical-align: middle;"> Prix d'achat':
+                                    <?php echo $offerData['offer_price_buy'] ?> Dhs
+                                </span>
+                                
+
+                            </div>
+                            <span
+                                    class="badge bg-light-primary text-primary fs-6 gap-2 d-inline-flex align-items-center mb-3"
+                                    style="vertical-align: middle;"> Charges divers:
+                                    <?php echo $offerData['offer_fees'] ?> Dhs
+                                </span>
+
 
                             <form method="POST">
 
@@ -188,10 +210,14 @@ if (isset($_POST['submit'])) {
                                         <button
                                             class="btn minus min-width-40 py-0 border-end border-secondary fs-5 border-end-0 text-secondary"
                                             type="button" id="add1"><i class="ti ti-minus"></i></button>
-                                            <input type="hidden" name="product_name" value="<?php echo $offerData['offer_name']?>">
-                                            <input type="hidden" name="product_category" value="<?php echo $offerData['offer_category']?>">
-                                            <input type="hidden" name="product_price" value="<?php echo $offerData['offer_price']?>">
-                                            <input type="hidden" name="product_comission" value="<?php echo $offerData['offer_comission']?>">
+                                        <input type="hidden" name="product_name"
+                                            value="<?php echo $offerData['offer_name'] ?>">
+                                        <input type="hidden" name="product_category"
+                                            value="<?php echo $offerData['offer_category'] ?>">
+                                        <input type="hidden" name="product_price"
+                                            value="<?php echo $offerData['offer_price'] ?>">
+                                        <input type="hidden" name="product_comission"
+                                            value="<?php echo $offerData['offer_comission'] ?>">
                                         <input type="text"
                                             class="min-width-40 flex-grow-0 border border-secondary text-secondary fs-4 fw-semibold form-control text-center qty"
                                             placeholder="" aria-label="Example text with button addon"
@@ -208,13 +234,14 @@ if (isset($_POST['submit'])) {
                                         unités de ce produit disponibles en stock</p>
                                 </div>
                                 <div class="d-sm-flex align-items-center gap-3 pt-8 mb-7">
-                                    <button class="btn d-block btn-primary px-5 py-8 mb-2 mb-sm-0" type="submit" name="submit">Demander</button>
-                                    
+                                    <button class="btn d-block btn-primary px-5 py-8 mb-2 mb-sm-0" type="submit"
+                                        name="submit">Commander</button>
+
                                     <a href="<?php echo $offerData['link'] ?>" target="_blank"
                                         class="btn d-block btn-danger px-7 py-8">Voir la page de l'offre</a>
                                 </div>
                             </form>
-                            <?php echo $message; ?> 
+                            <?php echo $message; ?>
 
                         </div>
                     </div>

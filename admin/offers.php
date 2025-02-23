@@ -2,128 +2,79 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Connect to the database
 include "../config.php";
 include "checkSession.php";
 include "fetchUserData.php";
 
-// Number of records per page
-$records_per_page = 6;
 
-// Get the current page from URL parameters, default is 1
-$page = isset($_GET['page']) && is_numeric($_GET['page']) ? $_GET['page'] : 1;
 
-// Get the selected category from the GET request
-$selected_category = isset($_GET['filterByCategory']) ? $_GET['filterByCategory'] : '';
-
-// Calculate the offset for the SQL query
-$offset = ($page - 1) * $records_per_page;
-
-// Fetch the total number of offers (with filtering)
-$total_query = "SELECT COUNT(*) as total FROM offers";
-if (!empty($selected_category)) {
-    $total_query .= " WHERE offer_category = '" . mysqli_real_escape_string($conn, $selected_category) . "'";
-}
-$total_result = mysqli_query($conn, $total_query);
-$total_row = mysqli_fetch_assoc($total_result);
-$total_offers = $total_row['total'];
-
-// Calculate total pages
-$total_pages = ceil($total_offers / $records_per_page);
-
-// Fetch offers for the current page (with filtering)
-$sql = "SELECT * FROM offers";
-if (!empty($selected_category)) {
-    $sql .= " WHERE offer_category = '" . mysqli_real_escape_string($conn, $selected_category) . "'";
-}
-$sql .= " ORDER BY id DESC LIMIT $records_per_page OFFSET $offset";
-
+// Prepare SQL query to get agents, ordered by id (latest first)
+$sql = "SELECT * FROM offers ORDER BY id DESC";
 $result = mysqli_query($conn, $sql);
 
-
 $table_data = '';
+
 while ($row = mysqli_fetch_assoc($result)) {
 
-    $offer_class = "";
-    if ($row['status'] == "Active" or $row['status'] == "active") {
-        $offer_class = "mb-1 badge bg-success";
-    } else if ($row['status'] == "Désactiver") {
-        $offer_class = "mb-1 badge bg-danger";
-    }
-    $table_data .= '
-        <style>
-        .image-container {
-            position: relative;
-            width: 100%; /* Or a specific width like 300px */
-            padding-bottom: 100%; /* Creates the 1:1 aspect ratio */
-            overflow: hidden;
-        }
 
-        .image-container img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* or contain */
-        }
-    </style>
-        <div class="col-md-6 col-lg-4">
-            <div class="card rounded-2 overflow-hidden hover-img">
-                <div class="position-relative image-container">  <a href="viewOffer.php?id=' . $row['id'] . '">
-                        <img src="' . $row['f_image'] . '" class="card-img-top rounded-0 img-fluid" alt="..."> </a>
-                    <span class="badge bg-white text-dark fs-2 lh-sm mb-9 me-9 py-1 px-2 fw-semibold position-absolute bottom-0 end-0">' . $row['offer_price'] . ' Dhs</span>
-                </div>
-                <span class="' . $offer_class . '">' . $row['status'] . '</span>
-                <div class="card-body p-4">
-                    <span class="badge text-bg-light fs-2 py-1 px-2 lh-sm mt-3">' . $row['offer_category'] . '</span>
-                    <a class="d-block my-4 fs-5 text-dark fw-semibold" href="#">' . $row['offer_name'] . '</a>
-                    <div class="d-flex align-items-center gap-4">
-                        <div class="d-flex align-items-center gap-2"><i class="ti ti-packages text-dark fs-5"></i>' . $row['offer_quantity'] . '</div>
-                        <div class="d-flex align-items-center gap-2"><i class="ti ti-moneybag text-dark fs-5"></i>' . $row['offer_comission'] . '</div>
-                    </div>
-                    <div class="card-body button-group">
-                        <a href="editOffer.php?id=' . $row['id'] . '" class="btn btn-light-secondary text-secondary px-2 d-flex align-items-center"><i class="ti ti-pencil fs-6" style="margin-right: 15px;"></i>   Modifier</a>
-                        <a href="#" onclick="confirmDelete(' . $row['id'] . ')" class="btn btn-light-secondary text-secondary px-2 d-flex align-items-center" ><i class="ti ti-trash fs-6" style="margin-right: 15px;"></i> Supprimer</a>
-                    </div>
-                </div>
+
+    // Determine the status class
+    if ($row['status'] == 'ACTIVE') {
+        $status_class = "badge bg-success fw-semibold fs-2";
+    } else if ($row['status'] == 'INACTIVE') {
+        $status_class = "badge bg-danger fw-semibold fs-2";
+    } else {
+        $status_class = "badge bg-primary fw-semibold fs-2";
+    }
+
+    // Create the table row with the agent details
+    $table_data .= '
+        <tr>
+            <td><input type="checkbox" class="row-select form-check-input contact-chkbox primary" value="' . $row['id'] . '"></td>
+            <td>
+                <p class="mb-0 fw-normal">' . $row['id'] . '</p>
+            </td>
+            <td>
+                <div class="d-flex align-items-center">
+                          <img src="' . $row['f_image'] . '" alt="avatar" class="rounded" width="35" height="35"/>
+                          <div class="ms-3">
+                            <div class="user-meta-info">
+                              <h6 class="user-name mb-0">' . $row['offer_name'] . '</h6>
+                              <span class="user-work fs-3">' . $row['offer_category'] . '</span>
+                            </div>
+                          </div>
             </div>
-        </div>
+            </td>
+            <td>
+                <p class="mb-0 fw-normal">' . $row['offer_price'] . ' MAD</p>
+            </td>
+            <td>
+                <span class="badge bg-info fw-semibold fs-2">' . $row['offer_comission'] . ' MAD</span>
+            </td>
+            <td>
+                <span class="badge bg-dark rounded-pill fw-semibold fs-2">' . $row['offer_quantity'] . '</span>
+            </td>
+            <td>
+                <span class="' . $status_class . '">' . $row['status'] . '</span>
+            </td>
+            <td>
+                <div class="button-group">
+                    <a class="btn mb-1 btn-primary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="viewOffer(' . $row['id'] . ')">
+                        <i class="fs-5 ti ti-eye"></i>
+                    </a>
+                    <a class="btn mb-1 btn-secondary btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="editOffer.php?id=' . $row['id'] . '">
+                        <i class="fs-5 ti ti-pencil"></i>
+                    </a>
+                    <a class="btn mb-1 btn-danger btn-circle btn-sm d-inline-flex align-items-center justify-content-center" href="#" onclick="confirmDelete(' . $row['id'] . ')">
+                        <i class="fs-5 ti ti-trash"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
     ';
 }
 
-// Fetch unique categories for the filter dropdown
-$sql_categories = "SELECT DISTINCT offer_category FROM offers";
-$result_categories = mysqli_query($conn, $sql_categories);
-$categories = [];
-while ($row = mysqli_fetch_assoc($result_categories)) {
-    $categories[] = $row['offer_category'];
-}
-
 mysqli_close($conn);
-
-// Pagination HTML
-$pagination = '<nav aria-label="..."><ul class="pagination justify-content-center mb-0 mt-4">';
-
-// Previous button
-if ($page > 1) {
-    $prev_page = $page - 1;
-    $pagination .= '<li class="page-item"><a class="page-link border-0 rounded-circle text-dark round-32 d-flex align-items-center justify-content-center" href="?page=' . $prev_page . '&filterByCategory=' . urlencode($selected_category) . '"><i class="ti ti-chevron-left"></i></a></li>';
-}
-
-// Page links
-for ($i = 1; $i <= $total_pages; $i++) {
-    $active_class = $i == $page ? 'active' : '';
-    $pagination .= '<li class="page-item ' . $active_class . '"><a class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center" href="?page=' . $i . '&filterByCategory=' . urlencode($selected_category) . '">' . $i . '</a></li>';
-}
-
-// Next button
-if ($page < $total_pages) {
-    $next_page = $page + 1;
-    $pagination .= '<li class="page-item"><a class="page-link border-0 rounded-circle text-dark round-32 d-flex align-items-center justify-content-center" href="?page=' . $next_page . '&filterByCategory=' . urlencode($selected_category) . '"><i class="ti ti-chevron-right"></i></a></li>';
-}
-
-$pagination .= '</ul></nav>';
 ?>
 
 <!DOCTYPE html>
@@ -144,6 +95,7 @@ $pagination .= '</ul></nav>';
     <!--  Favicon -->
     <link rel="shortcut icon" type="image/png" href="dist/images/logos/favicon.ico" />
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
+    <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
 </head>
 
@@ -195,62 +147,90 @@ $pagination .= '</ul></nav>';
                 <div class="d-flex align-items-center justify-content-between">
 
                     <div class="d-flex align-items-center">
-                        <a href="" onclick="window.location.reload(true);"><button class="btn btn-secondary mb-3" style="margin-right: 10px;"><i
-                                class="ti ti-refresh" style="margin-right: 6px;"></i>Actualiser les
-                            données</button></a>
+                        <a href="" onclick="window.location.reload(true);"><button class="btn btn-secondary mb-3"
+                                style="margin-right: 10px;"><i class="ti ti-refresh"
+                                    style="margin-right: 6px;"></i>Actualiser les
+                                données</button></a>
 
-                        
+
                     </div>
 
-                    <a href="addOffer.php"><button class="btn btn-outline-dark mb-3"><i
-                                    class="ti ti-plus" style="margin-right: 6px;"></i>Nouveau</button></a>
+                    <a href="addOffer.php"><button class="btn btn-outline-dark mb-3"><i class="ti ti-plus"
+                                style="margin-right: 6px;"></i>Nouveau</button></a>
 
                 </div>
 
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="border-bottom title-part-padding">
-                            <h4 class="card-title mb-0">Filtrer les données par :</h4>
-                        </div>
-                        <div class="card-body">
-                            <form class="row" method="GET" action="offers.php">
-                                <div class="col-sm-3">
-                                    <div class="mb-3">
-                                        <select class="form-select" id="filterByCategory" name="filterByCategory">
-                                            <option value="">Categorie</option>
-                                            <?php foreach ($categories as $category): ?>
-                                                <option value="<?php echo htmlspecialchars($category); ?>" <?php echo ($selected_category == $category) ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($category); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
+
+
+                <div class="datatables">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <button id="process-selected" class="btn btn-danger mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-trash" style="margin-right: 6px;"></i>Supprimer la
+                                            sélection</button>
+                                        <button id="activate-selected" class="btn btn-success mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-check" style="margin-right: 6px;"></i>Activer la
+                                            sélection</button>
+                                        <button id="deactivate-selected" class="btn btn-warning mb-4"
+                                            style="display: none; transition: all 0.5s ease-in-out; margin-right: 6px;"><i
+                                                class="fs-5 ti ti-x" style="margin-right: 6px;"></i>Désactiver la
+                                            sélection</button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table border text-nowrap customize-table mb-0 align-middle"
+                                            id="offers_table" style="width: 100%;">
+                                            <thead class="text-dark fs-4">
+                                                <tr>
+                                                    <th>
+                                                        <input type="checkbox" id="select-all"
+                                                            class="form-check-input contact-chkbox primary">
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">ID</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Nom d'offre</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Prix de vente</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Commission</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Quantité</h6>
+                                                    </th>
+
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Statut</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-4 fw-semibold mb-0">Actions</h6>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php echo $table_data ?>
+
+
+
+
+
+
+                                            </tbody>
+                                        </table>
+
                                     </div>
                                 </div>
-                                <div class="col-sm-2">
-                                    <div class="mb-3">
-                                        <button class="btn btn-success font-weight-medium waves-effect waves-light"
-                                            type="submit">
-                                            <i class="ti ti-adjustments"></i>
-                                            Filtrer
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="row">
-
-
-                    <?php echo $table_data ?>
-
-
-
-
-                </div>
-
-                <?php echo $pagination; ?>
 
 
 
@@ -466,6 +446,32 @@ $pagination .= '</ul></nav>';
     <script src="dist/libs/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="dist/js/forms/sweet-alert.init.js"></script>
 
+    <script src="dist/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="dist/js/datatable/datatable-basic.init.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#offers_table').DataTable({
+                "scrollX": true,
+                "scrollY": true,
+                "language": {
+                    "lengthMenu": "Afficher _MENU_ entrées",
+                    "zeroRecords": "Aucun enregistrement trouvé",
+                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                    "infoEmpty": "Aucune entrée disponible",
+                    "infoFiltered": "(filtré de _MAX_ entrées au total)",
+                    "search": "Rechercher:",
+                    "paginate": {
+                        "first": "Premier",
+                        "last": "Dernier",
+                        "next": "Suivant",
+                        "previous": "Précédent"
+                    }
+                }
+            });
+        });
+    </script>
+
     <script>
         function confirmDelete(id) {
             Swal.fire({
@@ -494,6 +500,260 @@ $pagination .= '</ul></nav>';
                 }
             });
         }
+
+
+        function viewOffer(id) {
+            // Send AJAX request to fetch lead details
+            fetch("getOfferDetails.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: "id=" + id,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        Swal.fire("Erreur", data.error, "error");
+                    } else {
+                        // Display lead details in SweetAlert
+                        Swal.fire({
+                            title: "Détails d'offre",
+                            html: `
+                            <style>
+    .image-container {
+        position: relative;
+        width: 100%; /* Or a specific width like 300px */
+        padding-bottom: 100%; /* This creates the 1:1 aspect ratio */
+        overflow: hidden;
+    }
+
+    .image-container img {
+        position: absolute; /* Important for positioning within the container */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* or contain, depending on your preference */
+    }
+</style>
+
+
+
+                <div class="details" style="text-align: left; margin: 20px; line-height: 2;">
+                    <div class="row d-flex align-items-center justify-content-between">
+                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-secondary text-secondary">ID: ${data.id}</span></div>
+                        <div class="col-md-5"><span class="mb-1 badge font-medium bg-light-warning text-warning">${data.created_at}</span></div>
+                        
+
+                    </div>
+                    <strong>Nom:</strong> ${data.offer_name} <br>
+                    <strong>Catégorie:</strong> ${data.offer_category} <br>
+                    <strong>Prix de vente:</strong> ${data.offer_price} MAD <br>
+                    <strong>Prix d'achat':</strong> ${data.offer_price_buy} MAD<br>
+                    <strong>Commission':</strong> ${data.offer_comission} MAD<br>
+                    <strong>Charges divers:</strong> ${data.offer_fees}  MAD<br>
+                    <strong>Description:</strong> ${data.offer_description}  <br>
+                    <strong>Lien:</strong> ${data.link}  <br>
+                    <strong>Statut:</strong> <span class="${data.status_class}">${data.status}</span><br>
+                    <div class="position-relative image-container mt-3">
+                    
+                    <strong>Images(s):</strong> <img src="${data.f_image}" class="card-img-top rounded"></div>  <br>
+                    
+                </div>
+                `,
+                            icon: "info",
+                            confirmButtonText: "Fermer"
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("Erreur:", error);
+                    Swal.fire("Erreur", "Impossible de récupérer les détails", "error");
+                });
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let deleteButton = document.getElementById("process-selected");
+            let activateButton = document.getElementById("activate-selected");
+            let deactivateButton = document.getElementById("deactivate-selected");
+
+            deleteButton.style.display = "none";
+            activateButton.style.display = "none";
+            deactivateButton.style.display = "none";
+
+            function updateButtonVisibility() {
+                let anyChecked = document.querySelectorAll(".row-select:checked").length > 0;
+                deleteButton.style.display = anyChecked ? "block" : "none";
+                activateButton.style.display = anyChecked ? "block" : "none";
+                deactivateButton.style.display = anyChecked ? "block" : "none";
+            }
+
+            document.querySelectorAll(".row-select").forEach((checkbox) => {
+                checkbox.addEventListener("change", updateButtonVisibility);
+            });
+
+            document.getElementById("select-all").addEventListener("change", function () {
+                let isChecked = this.checked;
+                document.querySelectorAll(".row-select").forEach((checkbox) => {
+                    checkbox.checked = isChecked;
+                });
+                updateButtonVisibility();
+            });
+
+            // Delete button logic
+            deleteButton.addEventListener("click", function () {
+                let selectedIds = [];
+
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: "Vous ne pourrez pas revenir en arrière\u00A0!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Oui, supprimez-les !"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("deleteOffers.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    selectedIds.forEach(id => {
+                                        document.querySelector(`.row-select[value="${id}"]`).closest("tr").remove();
+                                    });
+
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Supprimé!",
+                                        text: "Les offres sélectionnés ont été supprimés.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload(); // Reload page after deletion
+                                    });
+
+                                    updateButtonVisibility(); // Hide button if no rows left
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: "Impossible de supprimer certains ou tous les offres."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "Something went wrong!"
+                                });
+                                console.error("Error:", error);
+                            });
+                    }
+                });
+            });
+
+            // Activate button logic
+            activateButton.addEventListener("click", function () {
+                bulkToggleStatus("ACTIVE");
+            });
+
+            // Deactivate button logic
+            deactivateButton.addEventListener("click", function () {
+                bulkToggleStatus("INACTIVE");
+            });
+
+            function bulkToggleStatus(newStatus) {
+                let selectedIds = [];
+                document.querySelectorAll(".row-select:checked").forEach((checkbox) => {
+                    selectedIds.push(checkbox.value);
+                });
+
+                if (selectedIds.length === 0) return;
+
+                Swal.fire({
+                    title: "Es-tu sûr?",
+                    text: `Vous êtes sur le point de ${newStatus.toLowerCase()} les offres sélectionnés.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Oui, continuez !",
+                    cancelButtonText: "Non, annulez !",
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("toggleStatusOffersBulk.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds, status: newStatus })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Mis à jour !",
+                                        text: "Les offres sélectionnés ont été mis à jour.",
+                                        timer: 2000
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Erreur",
+                                        text: "Impossible de mettre à jour certains ou tous les offres."
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Erreur",
+                                    text: "Une erreur s'est produite !"
+                                });
+                                console.error("Erreur\u00A0:", error);
+                            });
+                    }
+                });
+            }
+
+            // Handle the toggle status button click event
+            document.querySelectorAll('.toggle-status').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const statusId = this.getAttribute('data-id');
+                    const newStatus = this.getAttribute('data-status');
+
+                    // SweetAlert2 confirmation prompt
+                    Swal.fire({
+                        title: 'Es-tu sûr?',
+                        text: `Vous êtes sur le point de ${newStatus.toLowerCase()} cette offre.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Oui, continuez !',
+                        cancelButtonText: 'Non, annule!',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect to the PHP script that handles the status change
+                            window.location.href = `toggleStatusOffers.php?id=${statusId}&status=${newStatus}`;
+                        }
+                    });
+                });
+            });
+        });
     </script>
 </body>
 
