@@ -540,6 +540,19 @@
 
         <li class="nav-small-cap">
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+          <span class="hide-menu">Outils</span>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" href="simulator.php" aria-expanded="false">
+            <span>
+              <i class="ti ti-calculator"></i>
+            </span>
+            <span class="hide-menu">Simulateur</span>
+          </a>
+        </li>
+
+        <li class="nav-small-cap">
+          <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
           <span class="hide-menu">Documentation</span>
         </li>
         <li class="sidebar-item">

@@ -97,9 +97,11 @@ mysqli_close($conn);
     <link id="themeColors" rel="stylesheet" href="dist/css/style.min.css" />
     <link rel="stylesheet" href="dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="dist/libs/sweetalert2/dist/sweetalert2.min.css">
+
 </head>
 
 <body>
+    
     <!-- Preloader -->
     <div class="preloader">
         <img src="dist/images/logos/favicon.ico" alt="loader" class="lds-ripple img-fluid" />
@@ -185,6 +187,7 @@ mysqli_close($conn);
                                         <table class="table border text-nowrap customize-table mb-0 align-middle"
                                             id="offers_table" style="width: 100%;">
                                             <thead class="text-dark fs-4">
+                                                
                                                 <tr>
                                                     <th>
                                                         <input type="checkbox" id="select-all"
@@ -223,6 +226,8 @@ mysqli_close($conn);
 
 
                                             </tbody>
+
+                                            
                                         </table>
 
                                     </div>
@@ -451,7 +456,7 @@ mysqli_close($conn);
 
     <script>
         $(document).ready(function () {
-            $('#offers_table').DataTable({
+            var table = $('#offers_table').DataTable({
                 "scrollX": true,
                 "scrollY": true,
                 "language": {
@@ -469,6 +474,8 @@ mysqli_close($conn);
                     }
                 }
             });
+
+            
         });
     </script>
 
